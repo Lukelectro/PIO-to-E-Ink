@@ -1,17 +1,11 @@
 .program spielerei
 
-; Ik wil leren hoe via de pio parallel data uit te sturen,
-; uiteindelijk moet het data naar een e-inkje gaan duwen
-
 .define public CYCLESPERSEC 2000 ; how many cycles per second do I want for the PIO? (and probably there is a limit to what the divider can do... Or can I run it at 1 Hz?
 
 pull
 out pins, 8
 
-
-; todo: modify for use of multiple pins instead of just one (8 bit output. Or 16)
-; todo: and add a clock pin via side set
-; todo: and figure out how to get data into this statemachine's rx/tx fifo?
+; todo: add a clock pin via side set, or figure out what the e-in needs (hclk, vclk, data and modify to suit)
 
 % c-sdk {
     #include "hardware/clocks.h"
