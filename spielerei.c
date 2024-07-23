@@ -4,7 +4,7 @@
 #include "pico/binary_info.h"
 #include "spielerei.pio.h"
 
-const uint LED_PIN = 16; // now uses pin 16,17,18,19,20,21,22,23,24 to output 8 bit parallel data
+const uint LED_PIN = 15; // now uses pin 15,16,17,18,19,20,21,22 to output 8 bit parallel data
 
 int main()
 {
