@@ -22,11 +22,10 @@ int main()
 
     while (1)
     {
-        pio_sm_put_blocking(pio,sm,0x5555); // for now, put a dataword this way. Later, figure out DMA to write out a display buffer
-        pio_sm_put_blocking(pio,sm,0xAAAA);
-        sleep_ms(250);
-
-/*
+        uint counter;
+        counter++;
+        pio_sm_put_blocking(pio,sm,counter); // for now, put a dataword this way. Later, figure out DMA to write out a display buffer
+        /*
         gpio_put(LED_PIN, 0);
         sleep_ms(250);
         gpio_put(LED_PIN, 1);
