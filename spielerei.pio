@@ -1,6 +1,6 @@
 .program spielerei
 
-; Ik wil leren hoe via de pio parallel data uit te sturen, maar eerst maar eens kijken of ik uberhaupt een pio programma gecompiled krijg
+; Ik wil leren hoe via de pio parallel data uit te sturen,
 ; uiteindelijk moet het data naar een e-inkje gaan duwen
 
 
@@ -8,8 +8,10 @@ pull
 out pins, 8
 
 
-; todo: modify for use of multiple pins instead of just one
+; todo: modify for use of multiple pins instead of just one (8 bit output. Or 16)
 ; todo: and add a clock pin via side set
+; todo: and figure out how to get data into this statemachine's rx/tx fifo?
+
 % c-sdk {
 static inline void spielerei_program_init(PIO pio, uint sm, uint offset, uint pin) {
     pio_sm_config c = spielerei_program_get_default_config(offset);
