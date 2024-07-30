@@ -3,10 +3,10 @@
 .define public CYCLESPERSEC 2000 ; how many cycles per second do I want for the PIO? (divider is 16 bits so max 65536, in steps of 1/256 (8 bits)).
 
 .wrap_target
-pull side 1 [5] ; todo replace by autopull, delay after side set else my Logic Analyser is too slow to capture it...
-out pins, 8 side 0 [5] ; 
-set pins 1 side 1 [5];
-set pins 0 side 1 [5];
+set pins 0 side 0;
+pull side 0; todo replace by autopull
+out pins, 8 side 1; 
+set pins 1 side 0;
 .wrap
 
 ; todo: add a clock pin via side set, or figure out what the e-in needs (hclk, vclk, data and modify to suit)
