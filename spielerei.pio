@@ -1,11 +1,16 @@
 .program spielerei
+.side_set 1
+.define public CYCLESPERSEC 2000 ; how many cycles per second do I want for the PIO? (divider is 16 bits so max 65536, in steps of 1/256 (8 bits)).
 
-.define public CYCLESPERSEC 2000 ; how many cycles per second do I want for the PIO? (and probably there is a limit to what the divider can do... Or can I run it at 1 Hz?
-
-pull
-out pins, 8
+.wrap_target
+pull side 1 [5] ; todo replace by autopull, delay after side set else my Logic Analyser is too slow to capture it...
+out pins, 8 side 0 [5] ; 
+set pins 1 side 1 [5];
+set pins 0 side 1 [5];
+.wrap
 
 ; todo: add a clock pin via side set, or figure out what the e-in needs (hclk, vclk, data and modify to suit)
+; todo: it might be easy-er to develop the C part in a C-file and only copy it into the .pio file once it is complete, so there is syntaxHL and documentation
 
 % c-sdk {
     #include "hardware/clocks.h"
@@ -23,8 +28,20 @@ static inline void spielerei_program_init(PIO pio, uint sm, uint offset, uint pi
     // Set the pin direction to output at the PIO
     pio_sm_set_consecutive_pindirs(pio, sm, pin, 8, true);
 
+    sm_config_set_sideset_pins (&c,2); //side-set gpio gp2 -- NOTE: sm_config_set_sideset_pins is not pio_sm_set_sideset_pins! 
+    pio_gpio_init(pio,2); // connect pin 2 to pio TODO: pin 2 now hardwired
+    pio_sm_set_consecutive_pindirs(pio, sm, 2, 1, true);//set output for the side-set pin
+
+//set pins for use with SET
+    sm_config_set_set_pins(&c,3,1); // set pin 3 for use with set
+    pio_gpio_init(pio,3);
+    pio_sm_set_consecutive_pindirs(pio,sm,3,1,true);
+
     float div = clock_get_hz(clk_sys) / spielerei_CYCLESPERSEC;
     sm_config_set_clkdiv(&c,div);
+
+    //join both 4-level fifo's into one output fifo (8 levels)
+    sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_TX);
 
 
     // Load our configuration, and jump to the start of the program
