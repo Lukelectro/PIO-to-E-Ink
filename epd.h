@@ -14,38 +14,10 @@
 
 extern unsigned char EPD_FB[60000];
 
-//set pin functions. Data pin is base pin up to base pin + 7:
-unsigned int EPD_CL = 1, EPD_LE = 2, EPD_OE = 3, EPD_SPH=4, EPD_GMODE1=5, EPD_SPV=6, EPD_CKV=7, EPD_PWR_CTRL=8, EPD_VPOS_EN=9, EPD_VNEG_EN=10, EPD_DATA_BASEPIN=11;  
-
 
 #define PulseDelay()    {Delay_Us(1);} // todo: might need to delay on RP2040. Preferably with a timer/sleep/rtos-compatible something. RP2040 System timer? (us tick)
 
-#if original
 //SOURCE DRIVER
-#define EPD_CL_L()        {GPIOA->BSRRH = GPIO_Pin_1; PulseDelay();}
-#define EPD_CL_H()        {GPIOA->BSRRL = GPIO_Pin_1; PulseDelay();}
-#define EPD_LE_L()        {GPIOA->BSRRH = GPIO_Pin_2; PulseDelay();}
-#define EPD_LE_H()        {GPIOA->BSRRL = GPIO_Pin_2; PulseDelay();}
-#define EPD_OE_L()        {GPIOA->BSRRH = GPIO_Pin_3; PulseDelay();}
-#define EPD_OE_H()        {GPIOA->BSRRL = GPIO_Pin_3; PulseDelay();}
-#define EPD_SHR_L()       {GPIOA->BSRRH = GPIO_Pin_4; PulseDelay();}
-#define EPD_SHR_H()       {GPIOA->BSRRL = GPIO_Pin_4; PulseDelay();}
-#define EPD_SPH_L()       {GPIOA->BSRRH = GPIO_Pin_5; PulseDelay();}
-#define EPD_SPH_H()       {GPIOA->BSRRL = GPIO_Pin_5; PulseDelay();}
-
-//GATE DRIVER
-#define EPD_GMODE1_L()    {GPIOE->BSRRH = GPIO_Pin_3; PulseDelay();}
-#define EPD_GMODE1_H()    {GPIOE->BSRRL = GPIO_Pin_3; PulseDelay();}
-#define EPD_GMODE2_L()    {GPIOE->BSRRH = GPIO_Pin_2; PulseDelay();}
-#define EPD_GMODE2_H()    {GPIOE->BSRRL = GPIO_Pin_2; PulseDelay();}
-#define EPD_XRL_L()       {GPIOE->BSRRH = GPIO_Pin_4; PulseDelay();}
-#define EPD_XRL_H()       {GPIOE->BSRRL = GPIO_Pin_4; PulseDelay();}
-#define EPD_SPV_L()       {GPIOA->BSRRH = GPIO_Pin_6; PulseDelay();}
-#define EPD_SPV_H()       {GPIOA->BSRRL = GPIO_Pin_6; PulseDelay();}
-#define EPD_CKV_L()       {GPIOA->BSRRH = GPIO_Pin_7; PulseDelay();}
-#define EPD_CKV_H()       {GPIOA->BSRRL = GPIO_Pin_7; PulseDelay();}
-#else
-//SOURCE DRIVER // TODO: modify for RP2040
 #define EPD_CL_L()        {gpio_put(EPD_CL, 0);  PulseDelay();}
 #define EPD_CL_H()        {gpio_put(EPD_CL, 1);  PulseDelay();}
 #define EPD_LE_L()        {gpio_put(EPD_LE, 0);  PulseDelay();}
@@ -78,9 +50,8 @@ typedef unsigned char u8;
 
 #define ROTATE /* to swap X an Y */
 
-#endif
-
 void EPD_Init(void);
+void EPD_GPIO_Init(void);
 void EPD_Power_Off(void);
 void EPD_Power_On(void);
 void EPD_Clear(void);

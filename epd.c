@@ -5,14 +5,20 @@
 #include "epd.h"
 #include <stdlib.h> // otherwise abs() not defined.
 #include "pico/time.h" // pico time, for sleep_us etc.
+#include "font.h" // fonts from zephray
 
 /*******************************************************************************
 
 //todo: modify for RP2040
 
+
 *******************************************************************************/
 
 unsigned char EPD_FB[60000]; //1bpp Framebuffer 
+
+//set pin functions. Data pin is base pin up to base pin + 7:
+const uint EPD_CL = 1, EPD_LE = 2, EPD_OE = 3, EPD_SPH=4, EPD_GMODE1=5, EPD_SPV=6, EPD_CKV=7, EPD_PWR_CTRL=8, EPD_VPOS_EN=9, EPD_VNEG_EN=10, EPD_DATA_BASEPIN=11;  
+
 
 #ifdef BGIMG /* To save memory / to simplyfy making-it-work */
 #ifdef __USE_FIXED_BG__
@@ -25,11 +31,6 @@ unsigned char EPD_BG[240000] @ 0x08020000; //fixed address of image
 //RP2040 SDK already has these
 //#define MIN(a,b) (((a)<(b))?(a):(b))
 //#define MAX(a,b) (((a)>(b))?(a):(b))
-    
-extern const unsigned char Font_Ascii_8X16E[];
-extern const unsigned char Font_Ascii_24X48E[];
-extern const unsigned char Font_Ascii_12X24E[];
-//extern const unsigned char WQY_ASCII_24[];
 
 #ifndef USE_H_SCREEN
 

@@ -5,11 +5,12 @@
 #include "pico/binary_info.h"
 #include "spielerei.pio.h"
 #include "chargepump.pio.h"
+#include "epd.h"
 
 const uint LED_PIN = 15; // now uses pin 15,16,17,18,19,20,21,22 to output 8 bit parallel data
 uint32_t dispdata[1+800*600*2/32]; // 800*600 pixels, 2bits per pixel, 32 bits per item. Dus 16 pixels per item. 600 pixel per row (of 800), dus komt niet eens mooi uit
 
-dispdata_init()
+void dispdata_init()
 {
     for (uint j = 0; j < 600; j++)
     {
@@ -54,7 +55,7 @@ int main()
     int dmach = dma_claim_unused_channel(true);
     dma_channel_config eink_dma_ch_config = dma_channel_get_default_config(dmach);
     //default config has read increment and write to fixed adres, 32 bits wide, which is indeed what's needed here
-    channel_config_set_dreq(&dmach,DREQ_PIO0_TX0); // sets DREQ to PIO TX. TODO: make sure this is the right PIO and/of maybe make this dynamic instead of hardcoded
+    channel_config_set_dreq(&eink_dma_ch_config, DREQ_PIO0_TX0); // sets DREQ to PIO TX. TODO: make sure this is the right PIO and/of maybe make this dynamic instead of hardcoded
 
 // write the config and start the transfer
     dma_channel_configure(
@@ -64,7 +65,6 @@ int main()
         &dispdata[0],
         true
     )
-
 
 
     while (1)
