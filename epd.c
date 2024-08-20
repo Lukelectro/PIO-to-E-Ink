@@ -4,6 +4,7 @@
 *******************************************************************************/
 #include "epd.h"
 #include <stdlib.h> // otherwise abs() not defined.
+#include "pico/time.h" // pico time, for sleep_us etc.
 
 /*******************************************************************************
 
@@ -99,20 +100,10 @@ void DelayCycle(unsigned long x)
   }
 }
 
-//Us delay that is not accurate -- TODO: use RP2040 API for acurate us delay!
+//Us delay that needs not be accurate
 void Delay_Us(unsigned long x)
 {
-  unsigned long a;
-  
-  while (x--)
-  {
-    a = 17;// on the original 120 MHz
-    a=8; /* TODO: verify this works on the 60 MHz f103*/
-    while (a--)
-    {
-      asm ("nop");
-    }
-  }
+  sleep_us(x); // TODO: make something better not busy wait
 }
 
 void EPD_GPIO_Init()
@@ -166,11 +157,8 @@ void EPD_Init(void)
 
 void EPD_Send_Row_Data(u8 *pArray)  
 {
-    //todo: modify for RP2040 and PIO!
+    //todo: replace with PIO row write / move the data with DMA and start PIO to send it to the display
   unsigned char i;
-  unsigned short a;
-  
-  a = GPIOA->IDR & 0x00FF;
   
   EPD_LE_H(); 
   EPD_CL_H();
@@ -191,9 +179,10 @@ void EPD_Send_Row_Data(u8 *pArray)
   for (i=0;i<200;i++)
   {
    // GPIOA->ODR = pArray[i]; /* this wont work considering that port is shared with other things now.. */
-	  D0_GPIO_Port->ODR = (D0_GPIO_Port->ODR & 0xFF00) | pArray[i]; /* do this instead */
+	  //D0_GPIO_Port->ODR = (D0_GPIO_Port->ODR & 0xFF00) | pArray[i]; /* do this instead */
+    gpio_put_masked((0xff>>EPD_DATA_BASEPIN),pArray[i]>>EPD_DATA_BASEPIN); //on RP2040, instead use gpio-put_masked
     EPD_CL_H();
-    //DelayCycle(1);
+    DelayCycle(1);
     EPD_CL_L();
   }
   
@@ -218,11 +207,8 @@ void EPD_Send_Row_Data(u8 *pArray)
 
 void EPD_SkipRow(void)  
 {
-    //todo: modify for RP2040 and PIO!
   unsigned char i;
-  unsigned short a;
   
-  a = GPIOA->IDR & 0x00FF;
   
   EPD_LE_H(); 
   EPD_CL_H();
@@ -242,7 +228,8 @@ void EPD_SkipRow(void)
 
   for (i=0;i<200;i++)
   {
-    GPIOA->ODR = a;
+    //GPIOA->ODR = a; // TODO: data = 0 (0r 0xFF, one of the 'change nothing on the epd's anyway)
+    gpio_put_masked((0xff>>EPD_DATA_BASEPIN),0); //0 is 'change nothing'
     EPD_CL_H();
     //DelayCycle(1);
     EPD_CL_L();
@@ -270,20 +257,17 @@ void EPD_Send_Row_Data_Slow(u8 *pArray,unsigned char timingA,unsigned char timin
 {
   //todo: modify for RP2040 and PIO!
   unsigned char i;
-  unsigned short a;
   
-  a = GPIOA->IDR & 0x00FF;
-  
-  EPD_OE_H();
-  
+  EPD_OE_H();  
   EPD_SPH_L();                                          
 
   for (i=0;i<200;i++)
   {
 	// GPIOA->ODR = pArray[i]; /* this wont work considering that port is shared with other things now.. */
-	D0_GPIO_Port->ODR = (D0_GPIO_Port->ODR & 0xFF00) |pArray[i]; /* do this instead */
+	//D0_GPIO_Port->ODR = (D0_GPIO_Port->ODR & 0xFF00) |pArray[i]; /* do this instead */
+    gpio_put_masked((0xff>>EPD_DATA_BASEPIN),pArray[i]>>EPD_DATA_BASEPIN); //on RP2040, instead use gpio-put_masked
     EPD_CL_H();
-    //DelayCycle(1);
+    DelayCycle(1);
     EPD_CL_L();
   }
   

@@ -25,7 +25,7 @@ pico_generate_pio_header(spielerei ${CMAKE_CURRENT_LIST_DIR}/chargepump.pio)
 
 target_sources(spielerei PRIVATE spielerei.c epd.c)
 
-target_link_libraries(spielerei pico_stdlib hardware_pio)
+target_link_libraries(spielerei pico_stdlib hardware_pio hardware_dma)
 
 pico_enable_stdio_usb(spielerei 1)
 pico_enable_stdio_uart(spielerei 1)
