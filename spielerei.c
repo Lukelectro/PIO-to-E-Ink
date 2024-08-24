@@ -8,7 +8,8 @@
 #include "epd.h"
 
 const uint LED_PIN = 15; // now uses pin 15,16,17,18,19,20,21,22 to output 8 bit parallel data
-uint32_t dispdata[1+800*600*2/32]; // 800*600 pixels, 2bits per pixel, 32 bits per item. Dus 16 pixels per item. 600 pixel per row (of 800), dus komt niet eens mooi uit
+#define DISPDATASIZE (1+800*600*2/32)
+uint32_t dispdata[DISPDATASIZE]; // 800*600 pixels, 2bits per pixel, 32 bits per item. Dus 16 pixels per item. 600 pixel per row (of 800), dus komt niet eens mooi uit
 
 void dispdata_init()
 {
@@ -45,33 +46,37 @@ int main()
     spielerei_program_init(pio, sm_spiel, offset_spiel, LED_PIN); // TODO: should modify the init fucntion to make it clear it uses multiple pins for parallel data
     chargepump_program_init_and_start(pio,sm_ch,offset_ch,12,50000);// 50 kHz charge pump waveforms on pins 12 and 13
 
-    EPD_GPIO_Init();
-    EPD_Init();
-    EPD_Power_On();
+    //EPD_GPIO_Init();
+    //EPD_Init();
+    //EPD_Power_On();
 
-    EPD_String_24(10,10,"Hello World!!",1);
+    //EPD_String_24(10,10,"Hello World!!",1);
 
     dispdata_init();
     int dmach = dma_claim_unused_channel(true);
     dma_channel_config eink_dma_ch_config = dma_channel_get_default_config(dmach);
     //default config has read increment and write to fixed adres, 32 bits wide, which is indeed what's needed here
-    channel_config_set_dreq(&eink_dma_ch_config, DREQ_PIO0_TX0); // sets DREQ to PIO TX. TODO: make sure this is the right PIO and/of maybe make this dynamic instead of hardcoded
+
+    uint dreq = pio_get_dreq(pio,sm_spiel,true); // get the correct DREQ for this pio & statemachine
+    channel_config_set_dreq(&eink_dma_ch_config, dreq); // sets DREQ
 
 // write the config and start the transfer
     dma_channel_configure(
         dmach, 
         &eink_dma_ch_config,
-        PIO0_BASE+TXF0, // TODO: Figure out how to make DMA write to PIO0 TXR
+        //&pio_eink->txf[sm_eink], // TODO: Figure out how to make DMA write to PIO0 TXR
+        &pio->txf[sm_ch],
         &dispdata[0],
+        DISPDATASIZE,
         true
-    )
+    );
 
 
     while (1)
     {
         uint counter;
         counter++;
-        pio_sm_put_blocking(pio,sm_spiel,counter); // for now, put a dataword this way. Later, figure out DMA to write out a display buffer
+        //pio_sm_put_blocking(pio,sm_spiel,counter); // for now, put a dataword this way. Later, figure out DMA to write out a display buffer
     }
 
 }
