@@ -17,7 +17,7 @@
 unsigned char EPD_FB[60000]; //1bpp Framebuffer 
 
 //set pin functions. Data pin is base pin up to base pin + 7:
-const uint EPD_CL = 1, EPD_LE = 2, EPD_OE = 3, EPD_SPH=4, EPD_GMODE1=5, EPD_SPV=6, EPD_CKV=7, EPD_PWR_CTRL=8, EPD_VPOS_EN=9, EPD_VNEG_EN=10, EPD_DATA_BASEPIN=11;  
+const uint EPD_CL = 1, EPD_LE = 2, EPD_OE = 3, EPD_SPH=4, EPD_GMODE1=5, EPD_SPV=6, EPD_CKV=7, EPD_PWR_CTRL=8, EPD_VPOS_EN=9, EPD_VNEG_EN=10, EPD_DATA_BASEPIN=14;  
 
 
 #ifdef BGIMG /* To save memory / to simplyfy making-it-work */
