@@ -7,20 +7,24 @@
 #include "chargepump.pio.h"
 #include "epd.h"
 
-const uint LED_PIN = 15; // now uses pin 15,16,17,18,19,20,21,22 to output 8 bit parallel data
+const uint LED_PIN = 14; // now uses pin 15,16,17,18,19,20,21,22 to output 8 bit parallel data
 #define DISPDATASIZE (1+800*600*2/32)
 uint32_t dispdata[DISPDATASIZE]; // 800*600 pixels, 2bits per pixel, 32 bits per item. Dus 16 pixels per item. 600 pixel per row (of 800), dus komt niet eens mooi uit
 
+// TODO: test of die statemachien steeds de laaste 8 bits pakt van de 32 en de rest wegmikt, of dat ze alle 32 gebruikt worden in groepjes van 8, want afaik is dat configureerbaar maar ik weet niet wat de default is.
+// Done: Met autopull kun je inderdaad alle bits gebruiken, met 'handmatige' pull pak je elke pull 32 nieuwe bits en zou je dus 4 out instructies moeten gebruiken hetgeen geheugen verspilt. (Want autopull kost ook nog eens geen intstructie)
 void dispdata_init()
 {
     for (uint j = 0; j < 600; j++)
     {
         for (uint i = 0; i < 800; i++)
         {
-            if (i < 400)
-                dispdata[i + j] = 0x5555;
+            if (i<200)
+                //dispdata[i + j] = 0x55555555; // testen met 0x55555555 en 0xAAAAAAAA om zwart en wit op display te krijgen, 0b01 en 0b10 doen iets maar 11 en 00 zijn 'doe niks'.
+                dispdata[i + j] = 0xC0FFEE55; // maar om te kijken of 8 bits gebruikt en 24 weggegooit, of dat het per 8 bits gebruikt wordt, even andere testdata
             else
-                dispdata[i + j] = 0xAAAA;
+                //dispdata[i + j] = 0xAAAAAAAA;
+                dispdata[i + j] = 0xDEADBEEF;
         }
     }
     dispdata[0]=0; //initial row skip
@@ -28,8 +32,6 @@ void dispdata_init()
 
 int main()
 {
-
-
     bi_decl(bi_program_description("This is a test binary."));
     bi_decl(bi_1pin_with_name(LED_PIN, "LED op breadboard"));
     stdio_init_all();
@@ -44,7 +46,7 @@ int main()
     uint sm_ch = pio_claim_unused_sm(pio, true);
 
     spielerei_program_init(pio, sm_spiel, offset_spiel, LED_PIN); // TODO: should modify the init fucntion to make it clear it uses multiple pins for parallel data
-    chargepump_program_init_and_start(pio,sm_ch,offset_ch,12,50000);// 50 kHz charge pump waveforms on pins 12 and 13
+    //chargepump_program_init_and_start(pio,sm_ch,offset_ch,12,50000);// 50 kHz charge pump waveforms on pins 12 and 13
 
     //EPD_GPIO_Init();
     //EPD_Init();
@@ -64,13 +66,11 @@ int main()
     dma_channel_configure(
         dmach, 
         &eink_dma_ch_config,
-        //&pio_eink->txf[sm_eink], // TODO: Figure out how to make DMA write to PIO0 TXR
-        &pio->txf[sm_ch],
-        &dispdata[0],
+        &pio->txf[sm_spiel],
+        dispdata,
         DISPDATASIZE,
         true
     );
-
 
     while (1)
     {
