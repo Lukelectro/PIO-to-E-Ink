@@ -12,7 +12,7 @@ set pins 1 [10]
 % c-sdk {
     #include "hardware/clocks.h"
 static inline void chargepump_program_init_and_start(PIO pio, uint sm, uint offset, uint basepin, uint frequency) {
-    pio_sm_config c = spielerei_program_get_default_config(offset);
+    pio_sm_config c = chargepump_program_get_default_config(offset);
 
 //set pins for use with SET
     sm_config_set_set_pins(&c,basepin,2); // set pin 3 for use with set
