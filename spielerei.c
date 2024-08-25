@@ -15,18 +15,15 @@ uint32_t dispdata[DISPDATASIZE]; // 800*600 pixels, 2bits per pixel, 32 bits per
 // Done: Met autopull kun je inderdaad alle bits gebruiken, met 'handmatige' pull pak je elke pull 32 nieuwe bits en zou je dus 4 out instructies moeten gebruiken hetgeen geheugen verspilt. (Want autopull kost ook nog eens geen intstructie)
 void dispdata_init()
 {
-    for (uint j = 0; j < 600; j++)
-    {
-        for (uint i = 0; i < 800; i++)
+        for (uint i = 0; i < DISPDATASIZE; i++)
         {
-            if (i<200)
+            if (i<DISPDATASIZE/2)
                 //dispdata[i + j] = 0x55555555; // testen met 0x55555555 en 0xAAAAAAAA om zwart en wit op display te krijgen, 0b01 en 0b10 doen iets maar 11 en 00 zijn 'doe niks'.
-                dispdata[i + j] = 0xC0FFEE55; // maar om te kijken of 8 bits gebruikt en 24 weggegooit, of dat het per 8 bits gebruikt wordt, even andere testdata
+                dispdata[i] = 0x55EEFFC0; // maar om te kijken of 8 bits gebruikt en 24 weggegooit, of dat het per 8 bits gebruikt wordt, even andere testdata (It gets send small endian, so reversed for readability)
             else
                 //dispdata[i + j] = 0xAAAAAAAA;
-                dispdata[i + j] = 0xDEADBEEF;
+                dispdata[i] = 0xEFBEADDE;
         }
-    }
     dispdata[0]=0; //initial row skip
 }
 
@@ -67,7 +64,7 @@ int main()
         dmach, 
         &eink_dma_ch_config,
         &pio->txf[sm_spiel],
-        dispdata,
+        &dispdata,
         DISPDATASIZE,
         true
     );
@@ -75,8 +72,20 @@ int main()
     while (1)
     {
         uint counter;
-        counter++;
-        //pio_sm_put_blocking(pio,sm_spiel,counter); // for now, put a dataword this way. Later, figure out DMA to write out a display buffer
-    }
 
+        if(!dma_channel_is_busy(dmach))
+        {
+            // once DMA is no longer busy, load new data and restart transfer
+            dispdata[0] = 0; 
+            dispdata[1] = counter;
+            counter++;
+           
+            dma_channel_set_read_addr(dmach, &dispdata, true); // need to Re-set read adress, as that is aut-incremented during a transfer. If a transfer is re-started without re-setting the read adres, it will read from there onwards. 
+            //and sset_read_addr re-triggers (true) so no need for dma_channel_start(dmach); // re-start DMA transfer 
+            
+            //TODO: use (re-)starting the DMA transfer to start a rowwrite after other display-setup is done and/or let pio handle setup as well
+        }
+
+        // pio_sm_put_blocking(pio,sm_spiel,counter); // for now, put a dataword this way. Later, figure out DMA to write out a display buffer
+    }
 }

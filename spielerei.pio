@@ -1,6 +1,6 @@
 .program spielerei
 .side_set 1
-.define public CYCLESPERSEC 2000 ; how many cycles per second do I want for the PIO? (divider is 16 bits so max 65536, in steps of 1/256 (8 bits)).
+.define public CYCLESPERSEC 1000000 ; how many cycles per second do I want for the PIO? (divider is 16 bits so max 65536, in steps of 1/256 (8 bits)).
 
 .wrap_target
 set pins 0 side 0;
