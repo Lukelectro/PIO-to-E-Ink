@@ -45,11 +45,13 @@ int main()
     spielerei_program_init(pio, sm_spiel, offset_spiel, LED_PIN); // TODO: should modify the init fucntion to make it clear it uses multiple pins for parallel data
     //chargepump_program_init_and_start(pio,sm_ch,offset_ch,12,50000);// 50 kHz charge pump waveforms on pins 12 and 13
 
-    //EPD_GPIO_Init();
-    //EPD_Init();
-    //EPD_Power_On();
+    EPD_GPIO_Init();
+    EPD_Init();
+    EPD_Power_On();
 
-    //EPD_String_24(10,10,"Hello World!!",1);
+    EPD_String_24(10,10,"Hello World!!",1);
+
+    EPD_DispScr(0,800);
 
     dispdata_init();
     int dmach = dma_claim_unused_channel(true);
@@ -59,14 +61,14 @@ int main()
     uint dreq = pio_get_dreq(pio,sm_spiel,true); // get the correct DREQ for this pio & statemachine
     channel_config_set_dreq(&eink_dma_ch_config, dreq); // sets DREQ
 
-// write the config and start the transfer
+// write the config and DO NOT YET start the transfer
     dma_channel_configure(
         dmach, 
         &eink_dma_ch_config,
         &pio->txf[sm_spiel],
         &dispdata,
         DISPDATASIZE,
-        true
+        false // true to start imeadeately, false to start later
     );
 
     while (1)
@@ -80,7 +82,7 @@ int main()
             dispdata[1] = counter;
             counter++;
            
-            dma_channel_set_read_addr(dmach, &dispdata, true); // need to Re-set read adress, as that is aut-incremented during a transfer. If a transfer is re-started without re-setting the read adres, it will read from there onwards. 
+            //dma_channel_set_read_addr(dmach, &dispdata, true); // need to Re-set read adress, as that is aut-incremented during a transfer. If a transfer is re-started without re-setting the read adres, it will read from there onwards. 
             //and sset_read_addr re-triggers (true) so no need for dma_channel_start(dmach); // re-start DMA transfer 
             
             //TODO: use (re-)starting the DMA transfer to start a rowwrite after other display-setup is done and/or let pio handle setup as well
