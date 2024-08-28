@@ -115,34 +115,8 @@ void Delay_Us(unsigned long x)
 void EPD_GPIO_Init()
 {
 /* set pin functions to gpio, set them to output, etc*/
-gpio_init(EPD_CL);
-gpio_init(EPD_LE);
-gpio_init(EPD_OE);
-gpio_init(EPD_SPH);
-gpio_init(EPD_SPV);
-gpio_init(EPD_GMODE1);
-gpio_init(EPD_CKV);
-gpio_init(EPD_PWR_CTRL);
-gpio_init(EPD_VPOS_EN);
-gpio_init(EPD_VNEG_EN);
-for(uint i=0;i<8;i++){
-  gpio_init(EPD_DATA_BASEPIN+i);
-}
-
-gpio_set_dir(EPD_CL,true);
-gpio_set_dir(EPD_LE,true);
-gpio_set_dir(EPD_OE,true);
-gpio_set_dir(EPD_SPH,true);
-gpio_set_dir(EPD_SPV,true);
-gpio_set_dir(EPD_GMODE1,true);
-gpio_set_dir(EPD_CKV,true);
-gpio_set_dir(EPD_PWR_CTRL,true);
-gpio_set_dir(EPD_VPOS_EN,true);
-gpio_set_dir(EPD_VNEG_EN,true);
-for(uint i=0;i<8;i++){
-  gpio_set_dir(EPD_DATA_BASEPIN+i,true);
-}
-
+gpio_init_mask(1<<EPD_CL|1<<EPD_LE|1<<EPD_OE|1<<EPD_SPH|1<<EPD_GMODE1|1<<EPD_SPV|1<<EPD_CKV|1<<EPD_PWR_CTRL|1<<EPD_VPOS_EN|1<<EPD_VNEG_EN|0xFF<<EPD_DATA_BASEPIN);
+gpio_set_dir_out_masked(1<<EPD_CL|1<<EPD_LE|1<<EPD_OE|1<<EPD_SPH|1<<EPD_GMODE1|1<<EPD_SPV|1<<EPD_CKV|1<<EPD_PWR_CTRL|1<<EPD_VPOS_EN|1<<EPD_VNEG_EN|0xFF<<EPD_DATA_BASEPIN);
 }
 
 void EPD_Power_Off(void)
