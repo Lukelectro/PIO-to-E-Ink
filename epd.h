@@ -15,7 +15,7 @@
 extern unsigned char EPD_FB[60000];
 
 
-#define PulseDelay()    {Delay_Us(1);} // todo: might need to delay on RP2040. Preferably with a timer/sleep/rtos-compatible something. RP2040 System timer? (us tick)
+#define PulseDelay()    {DelayCycle(5);} // todo: might need to delay on RP2040. Preferably with a timer/sleep/rtos-compatible something. RP2040 System timer? (us tick)
 
 //SOURCE DRIVER
 #define EPD_CL_L()        {gpio_put(EPD_CL, 0);  PulseDelay();}

@@ -33,36 +33,46 @@ int main()
     bi_decl(bi_1pin_with_name(LED_PIN, "LED op breadboard"));
     stdio_init_all();
     
-    pio_sm_claim(pio0,0); // reserve PIO0, State machine 0 for the DMA transfer
+    //pio_sm_claim(pio0,0); // reserve PIO0, State machine 0 for the DMA transfer
 
 
-    PIO pio = pio0;
-    uint offset_spiel = pio_add_program(pio, &spielerei_program);
-    uint sm_spiel = pio_claim_unused_sm(pio, true);
-    uint offset_ch = pio_add_program(pio, &chargepump_program);
-    uint sm_ch = pio_claim_unused_sm(pio, true);
+    //PIO pio = pio0;
+    //uint offset_spiel = pio_add_program(pio, &spielerei_program);
+    //uint sm_spiel = pio_claim_unused_sm(pio, true);
+    //uint offset_ch = pio_add_program(pio, &chargepump_program);
+    //uint sm_ch = pio_claim_unused_sm(pio, true);
 
-    spielerei_program_init(pio, sm_spiel, offset_spiel, LED_PIN); // TODO: should modify the init fucntion to make it clear it uses multiple pins for parallel data
     //chargepump_program_init_and_start(pio,sm_ch,offset_ch,12,50000);// 50 kHz charge pump waveforms on pins 12 and 13
 
-    EPD_GPIO_Init();
     EPD_Init();
     EPD_Power_On();
+    EPD_Clear();
 
-    EPD_String_24(10,10,"Hello World!!",1);
+    for(int j=0;j<600;j+=160){
+    for(int i =0;i<800;i+=25){
+    EPD_String_24(j+25,i,"Hello World!",1);
+    }
+    }
+    EPD_String_24(400,350,"www.eLuke.nl",1);
+  
 
-    EPD_DispScr(0,800);
+    EPD_DispScr(0,600);
 
+    EPD_Power_Off();
+
+// spielerij pio program is on the same pins, so init/start it only AFTER the other test with the display
+    //spielerei_program_init(pio, sm_spiel, offset_spiel, LED_PIN); // TODO: should modify the init fucntion to make it clear it uses multiple pins for parallel data
+    
     dispdata_init();
-    int dmach = dma_claim_unused_channel(true);
-    dma_channel_config eink_dma_ch_config = dma_channel_get_default_config(dmach);
+    //int dmach = dma_claim_unused_channel(true);
+    //dma_channel_config eink_dma_ch_config = dma_channel_get_default_config(dmach);
     //default config has read increment and write to fixed adres, 32 bits wide, which is indeed what's needed here
 
-    uint dreq = pio_get_dreq(pio,sm_spiel,true); // get the correct DREQ for this pio & statemachine
-    channel_config_set_dreq(&eink_dma_ch_config, dreq); // sets DREQ
+   // uint dreq = pio_get_dreq(pio,sm_spiel,true); // get the correct DREQ for this pio & statemachine
+   // channel_config_set_dreq(&eink_dma_ch_config, dreq); // sets DREQ
 
 // write the config and DO NOT YET start the transfer
-    dma_channel_configure(
+   /* dma_channel_configure(
         dmach, 
         &eink_dma_ch_config,
         &pio->txf[sm_spiel],
@@ -90,4 +100,5 @@ int main()
 
         // pio_sm_put_blocking(pio,sm_spiel,counter); // for now, put a dataword this way. Later, figure out DMA to write out a display buffer
     }
+    */
 }

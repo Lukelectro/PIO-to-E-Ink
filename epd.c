@@ -16,8 +16,8 @@
 
 unsigned char EPD_FB[60000]; //1bpp Framebuffer 
 
-//set pin functions. Data pin is base pin up to base pin + 7:
-const uint EPD_CL = 1, EPD_LE = 2, EPD_OE = 3, EPD_SPH=4, EPD_GMODE1=5, EPD_SPV=6, EPD_CKV=7, EPD_PWR_CTRL=8, EPD_VPOS_EN=9, EPD_VNEG_EN=10, EPD_DATA_BASEPIN=14;  
+//set pin functions. Data pin is base pin up to base pin + 7: CL to 11 as not to conflict with UART
+const uint EPD_CL = 11, EPD_LE = 2, EPD_OE = 3, EPD_SPH=4, EPD_GMODE1=5, EPD_SPV=6, EPD_CKV=7, EPD_PWR_CTRL=8, EPD_VPOS_EN=9, EPD_VNEG_EN=10, EPD_DATA_BASEPIN=14;  
 
 
 #ifdef BGIMG /* To save memory / to simplyfy making-it-work */
@@ -95,10 +95,15 @@ unsigned char g_dest_data[200];//Line data buffer
 
 void DelayCycle(unsigned long x)
 {
-  while (x--)
+  //ON Pi PICO, probably wayyyy too fast with just one "nop"
+ while (x--)
   {
     asm("nop");
+    asm("nop");
+    asm("nop");
+    asm("nop");
   }
+// sleep_us(x); // try this instead -- no, that is tooo slow
 }
 
 //Us delay that needs not be accurate
@@ -110,8 +115,34 @@ void Delay_Us(unsigned long x)
 void EPD_GPIO_Init()
 {
 /* set pin functions to gpio, set them to output, etc*/
-gpio_init_mask(1<<EPD_CL|1<<EPD_LE|1<<EPD_OE|1<<EPD_SPH|1<<EPD_GMODE1|1<<EPD_SPV|1<<EPD_CKV|1<<EPD_PWR_CTRL|1<<EPD_VPOS_EN|1<<EPD_VNEG_EN|0xF<<EPD_DATA_BASEPIN);
-gpio_set_dir_out_masked(1<<EPD_CL|1<<EPD_LE|1<<EPD_OE|1<<EPD_SPH|1<<EPD_GMODE1|1<<EPD_SPV|1<<EPD_CKV|1<<EPD_PWR_CTRL|1<<EPD_VPOS_EN|1<<EPD_VNEG_EN|0xF<<EPD_DATA_BASEPIN);
+gpio_init(EPD_CL);
+gpio_init(EPD_LE);
+gpio_init(EPD_OE);
+gpio_init(EPD_SPH);
+gpio_init(EPD_SPV);
+gpio_init(EPD_GMODE1);
+gpio_init(EPD_CKV);
+gpio_init(EPD_PWR_CTRL);
+gpio_init(EPD_VPOS_EN);
+gpio_init(EPD_VNEG_EN);
+for(uint i=0;i<8;i++){
+  gpio_init(EPD_DATA_BASEPIN+i);
+}
+
+gpio_set_dir(EPD_CL,true);
+gpio_set_dir(EPD_LE,true);
+gpio_set_dir(EPD_OE,true);
+gpio_set_dir(EPD_SPH,true);
+gpio_set_dir(EPD_SPV,true);
+gpio_set_dir(EPD_GMODE1,true);
+gpio_set_dir(EPD_CKV,true);
+gpio_set_dir(EPD_PWR_CTRL,true);
+gpio_set_dir(EPD_VPOS_EN,true);
+gpio_set_dir(EPD_VNEG_EN,true);
+for(uint i=0;i<8;i++){
+  gpio_set_dir(EPD_DATA_BASEPIN+i,true);
+}
+
 }
 
 void EPD_Power_Off(void)
@@ -181,7 +212,7 @@ void EPD_Send_Row_Data(u8 *pArray)
   {
    // GPIOA->ODR = pArray[i]; /* this wont work considering that port is shared with other things now.. */
 	  //D0_GPIO_Port->ODR = (D0_GPIO_Port->ODR & 0xFF00) | pArray[i]; /* do this instead */
-    gpio_put_masked((0xff>>EPD_DATA_BASEPIN),pArray[i]>>EPD_DATA_BASEPIN); //on RP2040, instead use gpio-put_masked
+    gpio_put_masked((0xff<<EPD_DATA_BASEPIN),pArray[i]<<(EPD_DATA_BASEPIN)); //on RP2040, instead use gpio-put_masked
     EPD_CL_H();
     DelayCycle(1);
     EPD_CL_L();
@@ -230,7 +261,7 @@ void EPD_SkipRow(void)
   for (i=0;i<200;i++)
   {
     //GPIOA->ODR = a; // TODO: data = 0 (0r 0xFF, one of the 'change nothing on the epd's anyway)
-    gpio_put_masked((0xff>>EPD_DATA_BASEPIN),0); //0 is 'change nothing'
+    gpio_put_masked((0xff<<EPD_DATA_BASEPIN),0); //0 is 'change nothing'
     EPD_CL_H();
     //DelayCycle(1);
     EPD_CL_L();
@@ -266,7 +297,7 @@ void EPD_Send_Row_Data_Slow(u8 *pArray,unsigned char timingA,unsigned char timin
   {
 	// GPIOA->ODR = pArray[i]; /* this wont work considering that port is shared with other things now.. */
 	//D0_GPIO_Port->ODR = (D0_GPIO_Port->ODR & 0xFF00) |pArray[i]; /* do this instead */
-    gpio_put_masked((0xff>>EPD_DATA_BASEPIN),pArray[i]>>EPD_DATA_BASEPIN); //on RP2040, instead use gpio-put_masked
+    gpio_put_masked((0xff<<EPD_DATA_BASEPIN),pArray[i]<<(EPD_DATA_BASEPIN)); //on RP2040, instead use gpio-put_masked
     EPD_CL_H();
     DelayCycle(1);
     EPD_CL_L();
@@ -343,7 +374,7 @@ void EPD_Power_On(void)
 	Delay_Us(100);
 	EPD_VNEG_H()
 	Delay_Us(1000);
-	EPD_VPOS_L()
+	EPD_VPOS_H()
 
 }
 
@@ -573,8 +604,7 @@ void EPD_SetPixel(unsigned short x,unsigned short y,unsigned char color)
   unsigned short x_bit;
   unsigned long x_byte;  
   
-  //if ((x<800)&&(y<600)) /* TODO: this would go wrong with the smaller buffer, so...*/
-  if((x<600)&&(y<240))
+  if((x<600)&&(y<800))
   {
     x_byte=x/8+y*100;
     x_bit=x%8;             
@@ -590,9 +620,7 @@ void EPD_SetPixel(unsigned short x,unsigned short y,unsigned char color)
   unsigned short y_bit;
   unsigned long y_byte;
 
-  //if ((x<800)&&(y<600)) /* TODO: this would go wrong with the smaller buffer, so...*/
-  /* besides, the ed060SC7 is 600x800, not 800x600*/
-  if((x<600)&&(y<240))
+  if((x<600)&&(y<800))
   {
     y_byte=y/8+x*100;
     y_bit=y%8;
