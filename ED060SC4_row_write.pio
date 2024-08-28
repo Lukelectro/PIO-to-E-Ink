@@ -1,0 +1,87 @@
+.program ED060SC4ROWWRITE
+
+; // Just row write is done by PIO, rest of the display driver is just software. Later, maybe more functinality could be moved to PIO, but row write is the slowest bit
+; // also, by using PIO, DMA can be used to move data to the display so the CPU has more free time for other tasks
+
+; // notes:
+; // the 3 pin groups are used as folows:
+; // out pin group for data
+; // sideset pins for clock CL and CKV (in that order)
+; // set pin group for LE OE SPH SPV (in that order)
+
+; // autopull is used for data
+
+; // opt. start_scan could also be done by pio maybe? If so, include SPV and VCLK. VCLK in side, SPV in pins
+
+.side_set 2;
+
+set pins 0b1111 side 0b00; // initial values
+
+; //todo: scan start
+
+.wrap_target 
+
+// row write
+set y 10 side 0
+set x 20 side 0
+.loop // iterate for each row 20*10=200
+out pins 8 side 0b10
+jmp x-- loop side 0b00
+set x 20 side 0;
+jmp y-- loop side 0;
+
+// todo: scan end and greyscale timing
+// TODO: this is unfinished and will not work
+
+.wrap
+
+% c-sdk {
+    #include "hardware/clocks.h"
+static inline void ED060SC4_program_init(PIO pio, uint sm, uint offset, uint datapin_base, uint clocks_base , uint control_base) {
+    // control_base: LE (Next OE, SPH, SPV)
+    // data_base: first data pin
+    // clocks_base: CL (next ckv)
+    pio_sm_config c = spielerei_program_get_default_config(offset);
+
+//set pins for use with SET
+    sm_config_set_set_pins(&c,control_base,4); 
+     // Set this pin's GPIO function (connect PIO to the pad)
+    for(inti=0;i<4;i++){
+        pio_gpio_init(pio, control_base+i);
+    }
+    // Set the pin direction to output at the PIO
+    pio_sm_set_consecutive_pindirs(pio,sm,control_base,4,true);
+//  set pins for use with OUT
+    sm_config_set_out_pins(&c, datapin_base, 8);
+    // Set this pin's GPIO function (connect PIO to the pad)
+        for(uint i=0;i<8;i++){
+            pio_gpio_init(pio, datapin_base+i);
+        }
+    // Set the pin direction to output at the PIO
+    pio_sm_set_consecutive_pindirs(pio, sm, datapin_base, 8, true);
+// set pins for use with SIDE_SET
+    sm_config_set_sideset_pins (&c,clocks_base); //side-set gpio gp2 -- NOTE: sm_config_set_sideset_pins is not pio_sm_set_sideset_pins! 
+    pio_gpio_init(pio,clocks_base); 
+    pio_gpio_init(pio,clocks_base+1); 
+    pio_sm_set_consecutive_pindirs(pio, sm, clocks_base, 2, true);//set output for the side-set pin
+
+    float div = clock_get_hz(clk_sys) / 1000000; // 1 cycle should be 1 us, so run at 1 MHz
+    sm_config_set_clkdiv(&c,div);
+
+    //join both 4-level fifo's into one output fifo (8 levels)
+    sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_TX);
+
+    sm_config_set_out_shift(&c, true,true,32); // autopull when 32 bits have been shifted out, right
+
+    // Load our configuration, and jump to the start of the program
+    pio_sm_init(pio, sm, offset, &c);
+    // Set the state machine running
+    pio_sm_set_enabled(pio, sm, true);
+}
+
+//todo: include functions to send data to the display (helpers to set up DMA or for testing poke, function to start powersuply and sequence power up, function to power down, etc.)
+
+}
+
+
+%}
