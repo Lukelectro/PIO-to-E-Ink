@@ -18,7 +18,7 @@ void dispdata_init()
 {
         for (uint i = 0; i < DISPDATASIZE; i++)
         {
-            if (i<DISPDATASIZE/2)
+            if (i<(DISPDATASIZE/2))
                 dispdata[i] = 0x55555555; // testen met 0x55555555 en 0xAAAAAAAA om zwart en wit op display te krijgen, 0b01 en 0b10 doen iets maar 11 en 00 zijn 'doe niks'.
                 else
                 dispdata[i] = 0xAAAAAAAA;
@@ -41,8 +41,6 @@ int main()
     //uint sm_ch = pio_claim_unused_sm(pio, true);
 
     //chargepump_program_init_and_start(pio,sm_ch,offset_ch,12,50000);// 50 kHz charge pump waveforms on pins 12 and 13
-
-    rowwrite_program_init(pio,sm_dmarw,offset_dmarw,14,10,2);
 
     int dmach = dma_claim_unused_channel(true);
     dma_channel_config eink_dma_ch_config = dma_channel_get_default_config(dmach);
@@ -68,13 +66,14 @@ int main()
     EPD_Power_On();
     EPD_Clear(); // dit nog in software
 
+    rowwrite_program_init(pio,sm_dmarw,offset_dmarw,14,10,2); // now let PIO snatch the pins (TODO: this is a problem, need to re-configure pins between CPU and PIO control of e-ink OR put entire e-ink control into pio)
+
+
     if(!dma_channel_is_busy(dmach))
         {
             // once DMA is no longer busy, load new data and restart transfer           
             dma_channel_set_read_addr(dmach, dispdata, true); // re-set read adress and restart transfer
         }
-      
-    pio_interrupt_clear(pio,0);// pull the chocks (Lower the IRQ flag, TODO: preferably after testing it, otherwise it could still be busy)
 
     while(dma_channel_is_busy(dmach)){}; // wait untill DMA is done before powering off
     busy_wait_ms(500); // then wait a bit longer just for the bit in FIFO to be writen to the display. 

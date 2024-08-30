@@ -7,7 +7,7 @@
 ; // the 3 pin groups are used as folows:
 ; // out pin group for data
 ; // sideset pins for clock CL and CKV (in that order)
-; // set pin group for LE OE SPH SPV (in that order)
+; // set pin group for LE OE SPH SPV GMODE1 (in that order)
 
 ; // autopull is used for data
 
@@ -15,42 +15,39 @@
 
 .side_set 2;
 
-;//set pins 0b1111 side 0b01; // initial values TODO: or set these by CPU?
+;//set pins 0b11111 side 0b00; // initial values TODO: or set these by CPU?
 
 ; //todo: scan start
 
 .wrap_target 
 // row write
-;//wait here for command from CPU (CPU should clear this IRQ after starting DMA to FIFO)
-;// see it as a GO/DONE signal: if this flag is HIGH the PIO SM is DONE and ready to go
-;// if CPU lowers this flag it is a GO signal
-irq wait 0 rel side 0b01;
+pull ifempty side 0b00; // It will wait here for data: Autopull is enabled, so this is a nop UNLESS it has to wait for data, then it will stall. 
 
-set pins 0b1111 side 0b11; // LE H and 2 clock pulses
-nop side 0b01;
-nop side 0b11;
-nop side 0b01;
-set pins 0b0111 side 0b11; // LE L and 2 clock pulses
-nop side 0b01;
-set y 10 side 0b11; // instead of nops, already set the loop iteration counters
-set x 20 side 0b01;
-
-set pins 0b0101 side 0b01; // set OE High SPH low, LE stays low
-loop: ;// iterate for each row 20*10=200
-out pins 8 side 0b11 ;// [2] ; // TODO: should it wait a bit here?
-jmp x-- loop side 0b01
-set x 20 side 0b01;
-jmp y-- loop side 0b01;
-
-set pins 0b0111 side 0b11; // SPH H and 2 clks
-nop side 0b01; 
-nop side 0b11;
-nop side 0b01;
-
-set pins 0b0011 side 0b10 // ckv L, OE L, 2 clocks
-nop side 0b00; 
+set pins 0b11111 side 0b11; // LE H and 2 clock pulses
 nop side 0b10;
-nop side 0b01; // CKV H
+nop side 0b11;
+nop side 0b10;
+set pins 0b01111 side 0b11; // LE L and 2 clock pulses
+nop side 0b10;
+set y 10 side 0b11; // instead of nops, already set the loop iteration counters
+set x 20 side 0b10;
+
+set pins 0b01011 side 0b10; // set OE High SPH low, LE stays low
+loop: ;// iterate for each row 20*10=200
+out pins 8 side 0b11 [2] ; // set data out, raise clock, and delay a bit
+jmp x-- loop side 0b10;
+set x 20 side 0b10;
+jmp y-- loop side 0b10;
+
+set pins 0b01111 side 0b11; // SPH H and 2 clks
+nop side 0b10; 
+nop side 0b11;
+nop side 0b10;
+
+set pins 0b00111 side 0b01 // ckv L, OE L, 2 clocks
+nop side 0b00; 
+nop side 0b01;
+nop side 0b10; // CKV H
 
 
 // todo: greyscale timing? But that is another wave shape!
@@ -67,13 +64,13 @@ static inline void rowwrite_program_init(PIO pio, uint sm, uint offset, uint dat
     pio_sm_config c = rowwrite_program_get_default_config(offset);
 
 //set pins for use with SET
-    sm_config_set_set_pins(&c,control_base,4); 
+    sm_config_set_set_pins(&c,control_base,5); 
      // Set this pin's GPIO function (connect PIO to the pad)
-    for(int i=0;i<4;i++){
+    for(int i=0;i<5;i++){
         pio_gpio_init(pio, control_base+i);
     }
     // Set the pin direction to output at the PIO
-    pio_sm_set_consecutive_pindirs(pio,sm,control_base,4,true);
+    pio_sm_set_consecutive_pindirs(pio,sm,control_base,5,true);
 //  set pins for use with OUT
     sm_config_set_out_pins(&c, datapin_base, 8);
     // Set this pin's GPIO function (connect PIO to the pad)
@@ -89,6 +86,9 @@ static inline void rowwrite_program_init(PIO pio, uint sm, uint offset, uint dat
     pio_sm_set_consecutive_pindirs(pio, sm, clocks_base, 2, true);//set output for the side-set pin
 
     float div = clock_get_hz(clk_sys) / 1000000; // 1 cycle should be 1 us, so run at 1 MHz
+    //float div = clock_get_hz(clk_sys) / 50000; // try 50 kHz instead too see if 1 MHz is too fast?
+    //float div = clock_get_hz(clk_sys) / 500;
+
     sm_config_set_clkdiv(&c,div);
 
     //join both 4-level fifo's into one output fifo (8 levels)
@@ -147,9 +147,6 @@ int start_a_dma_eink_rowwrite(uint* dmach, void* dispdata, PIO pio)
             dma_channel_set_read_addr(*dmach, dispdata, true); // re-set read adress and restart transfer
         }
         else return 0; // still busy
-      
-
-    pio_interrupt_clear(pio,0);// pull the chocks (Lower the IRQ flag, TODO: preferably after testing it, otherwise it could still be busy)
 
 return 1; 
 }
