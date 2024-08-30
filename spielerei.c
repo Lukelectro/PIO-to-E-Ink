@@ -41,21 +41,48 @@ int main()
     //uint sm_ch = pio_claim_unused_sm(pio, true);
 
     //chargepump_program_init_and_start(pio,sm_ch,offset_ch,12,50000);// 50 kHz charge pump waveforms on pins 12 and 13
-    int* pdmach;
-    rowwrite_program_init(pio,sm_dmarw,offset_dmarw,14,10,2);
-    DMA_setup_eink_rowwrite(&dispdata, DISPDATASIZE, pio, sm_dmarw, pdmach);
 
-     dispdata_init();
+    rowwrite_program_init(pio,sm_dmarw,offset_dmarw,14,10,2);
+
+    int dmach = dma_claim_unused_channel(true);
+    dma_channel_config eink_dma_ch_config = dma_channel_get_default_config(dmach);
+    //default config has read increment and write to fixed adres, 32 bits wide, which is indeed what's needed here
+
+    uint dreq = pio_get_dreq(pio,sm_dmarw,true); // get the correct DREQ for this pio & statemachine
+    channel_config_set_dreq(&eink_dma_ch_config, dreq); // sets DREQ
+
+// write the config and DO NOT YET start the transfer
+   dma_channel_configure(
+        dmach, 
+        &eink_dma_ch_config,
+        &pio->txf[sm_dmarw],
+        &dispdata,
+        DISPDATASIZE,
+        false // true to start imeadeately, false to start later
+    );
+
+
+    dispdata_init();
 
     EPD_Init();
     EPD_Power_On();
     EPD_Clear(); // dit nog in software
 
-    start_a_dma_eink_rowwrite(pdmach,dispdata,pio);
+    if(!dma_channel_is_busy(dmach))
+        {
+            // once DMA is no longer busy, load new data and restart transfer           
+            dma_channel_set_read_addr(dmach, dispdata, true); // re-set read adress and restart transfer
+        }
+      
+    pio_interrupt_clear(pio,0);// pull the chocks (Lower the IRQ flag, TODO: preferably after testing it, otherwise it could still be busy)
+
+    while(dma_channel_is_busy(dmach)){}; // wait untill DMA is done before powering off
+    busy_wait_ms(500); // then wait a bit longer just for the bit in FIFO to be writen to the display. 
+    //(TODO: in practice CPU should be doing something usefull and/or the busy/done signal should be used to know when to powerdown the eink)
+
+    EPD_Power_Off(); 
 
 
-
-    EPD_Power_Off();
 
 // spielerij pio program is on the same pins, so init/start it only AFTER the other test with the display
     //spielerei_program_init(pio, sm_spiel, offset_spiel, LED_PIN); // TODO: should modify the init fucntion to make it clear it uses multiple pins for parallel data
