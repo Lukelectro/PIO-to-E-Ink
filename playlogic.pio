@@ -1,0 +1,11 @@
+.program playlogic
+; // this can play waveforms stored in the format "[bits] [delay] [bits] [delay] repeat as long as needed" where both bits and delay are 32 bits
+; // these waveforms can then be autopulled
+; // it could be a simple way to control the e-ink or basicly anything, without wasting a lot of pio instructions on the waveforms for it, as these
+; // waveforms can then be stored in an array that gets send to the PIO, preferably by DMA unless it is less then FIFO in size.
+
+.wrap_target
+out pins 32
+out x
+wait x
+.wrap
