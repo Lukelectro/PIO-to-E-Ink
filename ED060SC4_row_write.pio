@@ -15,14 +15,18 @@
 
 .side_set 2;
 
-;//set pins 0b11111 side 0b00; // initial values TODO: or set these by CPU?
-
-; //todo: scan start
-
 .wrap_target 
 // row write
 pull ifempty side 0b00; // It will wait here for data: Autopull is enabled, so this is a nop UNLESS it has to wait for data, then it will stall. 
+; // start Vscan (col) GMODE 1 (already is), CKV1/0 with pause, SPV0, CKC1/0, SPV1, CKV1/0
+set pins 0b11111 side 0b01;
+nop [4] side 0b00;
+set pins 0b11101 side 0b01;
+nop [4] side 0b00;
+set pins 0b11111 side 0b01;
+nop [4] side 0b00;
 
+; // start Hscan (row)
 set pins 0b11111 side 0b11; // LE H and 2 clock pulses
 nop side 0b10;
 nop side 0b11;
@@ -30,28 +34,39 @@ nop side 0b10;
 set pins 0b01111 side 0b11; // LE L and 2 clock pulses
 nop side 0b10;
 set y 10 side 0b11; // instead of nops, already set the loop iteration counters
-set x 20 side 0b10;
-
+colloop:
+set x 20 side 0b10; // maximum 5 bits, so max 31, so 20 is good
+colloop2:
 set pins 0b01011 side 0b10; // set OE High SPH low, LE stays low
-loop: ;// iterate for each row 20*10=200
+rowloop: ;// iterate for each row 20*10=200 bytes per row -- rowwrite loop
 out pins 8 side 0b11 [2] ; // set data out, raise clock, and delay a bit
-jmp x-- loop side 0b10;
+jmp x-- rowloop side 0b10;
 set x 20 side 0b10;
-jmp y-- loop side 0b10;
+jmp y-- rowloop side 0b10;
 
+;// write out (OE) and next row (SPH, CKV) 
 set pins 0b01111 side 0b11; // SPH H and 2 clks
 nop side 0b10; 
 nop side 0b11;
 nop side 0b10;
 
-set pins 0b00111 side 0b01 // ckv L, OE L, 2 clocks
+set pins 0b00111 [4] side 0b01 // ckv L, OE L, 2 clocks
 nop side 0b00; 
 nop side 0b01;
 nop side 0b10; // CKV H
 
+;// for 600 rows: (30 times 20)
+jmp y-- colloop side 0b10;
+set y 30 side 0b10;
+jmp x-- colloop2 side 0b10;
+
+//todo: hscan stop? No, that is already in the SPH1, LE1 and 2 clocks, LE0 above...
+
 
 // todo: greyscale timing? But that is another wave shape!
 // Todo: maybe other waveshape(s) take less PIO instructions?
+// todo: maybe split up to multiple statmachines. One for data, one for control bits, both driven from data in RAM (OUT instructions to set pins to values from array, delays also from aray so variable timing is possible)
+// TODO: re-do all this based on Peteri Aimonens code, as that is more readable/clearer
 
 .wrap
 
