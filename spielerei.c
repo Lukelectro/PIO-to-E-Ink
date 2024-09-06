@@ -47,8 +47,17 @@ int main()
     //default config has read increment and write to fixed adres, 32 bits wide, which is indeed what's needed here
 
     uint dreq = pio_get_dreq(pio,sm_dmarw,true); // get the correct DREQ for this pio & statemachine
-    channel_config_set_dreq(&eink_dma_ch_config, dreq); // sets DREQ
+    channel_config_set_dreq(&eink_dma_ch_config, dreq); // sets DRE
 
+    dispdata_init();
+
+    EPD_Init();
+    EPD_Power_On();
+    EPD_Clear(); // dit nog in software
+
+    rowwrite_program_init(pio,sm_dmarw,offset_dmarw,14,10,2); // now let PIO snatch the pins
+
+    
 // write the config and DO NOT YET start the transfer
    dma_channel_configure(
         dmach, 
@@ -58,15 +67,6 @@ int main()
         DISPDATASIZE,
         false // true to start imeadeately, false to start later
     );
-
-
-    dispdata_init();
-
-    EPD_Init();
-    EPD_Power_On();
-    EPD_Clear(); // dit nog in software
-
-    rowwrite_program_init(pio,sm_dmarw,offset_dmarw,14,10,2); // now let PIO snatch the pins (TODO: this is a problem, need to re-configure pins between CPU and PIO control of e-ink OR put entire e-ink control into pio)
 
 
     if(!dma_channel_is_busy(dmach))

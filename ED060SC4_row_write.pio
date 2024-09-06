@@ -19,54 +19,45 @@
 // row write
 pull ifempty side 0b00; // It will wait here for data: Autopull is enabled, so this is a nop UNLESS it has to wait for data, then it will stall. 
 ; // start Vscan (col) GMODE 1 (already is), CKV1/0 with pause, SPV0, CKC1/0, SPV1, CKV1/0
-set pins 0b11111 side 0b01;
-nop [4] side 0b00;
-set pins 0b11101 side 0b01;
-nop [4] side 0b00;
-set pins 0b11111 side 0b01;
+set pins 0b11111 side 0b00; // side set happens before the instruction which happens before the delay. Since clock needs to be set AFTER, set it on next instruction
+nop [1] side 0b01;
+set pins 0b11101 [4] side 0b00;
+nop [1] side 0b01;
+set pins 0b11111 [4] side 0b00;
+nop [1] side 0b01;
 nop [4] side 0b00;
 
-; // start Hscan (row)
-set pins 0b11111 side 0b11; // LE H and 2 clock pulses
-nop side 0b10;
-nop side 0b11;
-nop side 0b10;
-set pins 0b01111 side 0b11; // LE L and 2 clock pulses
-nop side 0b10;
-set y 10 side 0b11; // instead of nops, already set the loop iteration counters
 colloop:
-set x 20 side 0b10; // maximum 5 bits, so max 31, so 20 is good
-colloop2:
-set pins 0b01011 side 0b10; // set OE High SPH low, LE stays low
-rowloop: ;// iterate for each row 20*10=200 bytes per row -- rowwrite loop
-out pins 8 side 0b11 [2] ; // set data out, raise clock, and delay a bit
-jmp x-- rowloop side 0b10;
-set x 20 side 0b10;
-jmp y-- rowloop side 0b10;
-
-;// write out (OE) and next row (SPH, CKV) 
-set pins 0b01111 side 0b11; // SPH H and 2 clks
-nop side 0b10; 
-nop side 0b11;
+; // start Hscan (row)
+set pins 0b00011 side 0b00;
 nop side 0b10;
+set y 10 side 0b00; // instead of nops, already set the loop iteration counters
+set x 20 side 0b00; 
+rowloop: ;// iterate for each row 20*10=200 bytes per row -- rowwrite loop
+out pins 8 side 0b00 ;
+jmp x-- rowloop side 0b10;
+set x 20 side 0b00;
+jmp y-- rowloop side 0b00;
 
-set pins 0b00111 [4] side 0b01 // ckv L, OE L, 2 clocks
-nop side 0b00; 
-nop side 0b01;
-nop side 0b10; // CKV H
+;// hscan_stop and next: sph H, cl H/L, LE H [1], LE0[1]
+set pins 0b00111 side 0b00; // 
+set x 20 side 0b10; 
+set pins 0b10111 [1] side 0b00;
+set pins 0b00111 [1] side 0b00;
 
-;// for 600 rows: (30 times 20)
-jmp y-- colloop side 0b10;
-set y 30 side 0b10;
-jmp x-- colloop2 side 0b10;
+//vscan write
+set pins 0b01111 [5] side 0b01
+set x 20 side 0;
+wait200:
+set pins 0b00111 [5] side 0b00
+jmp x-- wait200 [5] side 0;
 
-//todo: hscan stop? No, that is already in the SPH1, LE1 and 2 clocks, LE0 above...
+;// for 600 rows: (30 times 20), or rather simpy untill data runs out
+JMP !OSRE colloop side 0;
 
 
 // todo: greyscale timing? But that is another wave shape!
-// Todo: maybe other waveshape(s) take less PIO instructions?
 // todo: maybe split up to multiple statmachines. One for data, one for control bits, both driven from data in RAM (OUT instructions to set pins to values from array, delays also from aray so variable timing is possible)
-// TODO: re-do all this based on Peteri Aimonens code, as that is more readable/clearer
 
 .wrap
 
@@ -100,9 +91,9 @@ static inline void rowwrite_program_init(PIO pio, uint sm, uint offset, uint dat
     pio_gpio_init(pio,clocks_base+1); 
     pio_sm_set_consecutive_pindirs(pio, sm, clocks_base, 2, true);//set output for the side-set pin
 
-    float div = clock_get_hz(clk_sys) / 1000000; // 1 cycle should be 1 us, so run at 1 MHz
+    //float div = clock_get_hz(clk_sys) / 1000000; // 1 cycle should be 1 us, so run at 1 MHz
     //float div = clock_get_hz(clk_sys) / 50000; // try 50 kHz instead too see if 1 MHz is too fast?
-    //float div = clock_get_hz(clk_sys) / 500;
+    float div = clock_get_hz(clk_sys) / 100000;
 
     sm_config_set_clkdiv(&c,div);
 
