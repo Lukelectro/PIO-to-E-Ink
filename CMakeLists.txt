@@ -17,14 +17,11 @@ pico_sdk_init()
 
 add_executable(spielerei
 spielerei.c
-epd.c
 )
 
-pico_generate_pio_header(spielerei ${CMAKE_CURRENT_LIST_DIR}/spielerei.pio)
-pico_generate_pio_header(spielerei ${CMAKE_CURRENT_LIST_DIR}/chargepump.pio)
 pico_generate_pio_header(spielerei ${CMAKE_CURRENT_LIST_DIR}/ED060SC4_row_write.pio)
 
-target_sources(spielerei PRIVATE spielerei.c epd.c)
+target_sources(spielerei PRIVATE spielerei.c)
 
 target_link_libraries(spielerei pico_stdlib hardware_pio hardware_dma)
 

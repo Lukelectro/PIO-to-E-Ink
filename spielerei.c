@@ -3,10 +3,7 @@
 #include "hardware/gpio.h"
 #include "hardware/dma.h"
 #include "pico/binary_info.h"
-#include "spielerei.pio.h"
-#include "chargepump.pio.h"
 #include "ED060SC4_row_write.pio.h"
-#include "epd.h"
 
 const uint LED_PIN = 14; // now uses pin 15,16,17,18,19,20,21,22 to output 8 bit parallel data
 #define DISPDATASIZE (1+800*600*2/32)
@@ -37,10 +34,6 @@ int main()
     PIO pio = pio0;
     uint offset_dmarw = pio_add_program(pio, &rowwrite_program);
     uint sm_dmarw = pio_claim_unused_sm(pio, true);
-    //uint offset_ch = pio_add_program(pio, &chargepump_program);
-    //uint sm_ch = pio_claim_unused_sm(pio, true);
-
-    //chargepump_program_init_and_start(pio,sm_ch,offset_ch,12,50000);// 50 kHz charge pump waveforms on pins 12 and 13
 
     int dmach = dma_claim_unused_channel(true);
     dma_channel_config eink_dma_ch_config = dma_channel_get_default_config(dmach);
@@ -81,47 +74,4 @@ int main()
 
     EPD_Power_Off(); 
 
-
-
-// spielerij pio program is on the same pins, so init/start it only AFTER the other test with the display
-    //spielerei_program_init(pio, sm_spiel, offset_spiel, LED_PIN); // TODO: should modify the init fucntion to make it clear it uses multiple pins for parallel data
-    
-   
-    //int dmach = dma_claim_unused_channel(true);
-    //dma_channel_config eink_dma_ch_config = dma_channel_get_default_config(dmach);
-    //default config has read increment and write to fixed adres, 32 bits wide, which is indeed what's needed here
-
-   // uint dreq = pio_get_dreq(pio,sm_spiel,true); // get the correct DREQ for this pio & statemachine
-   // channel_config_set_dreq(&eink_dma_ch_config, dreq); // sets DREQ
-
-// write the config and DO NOT YET start the transfer
-   /* dma_channel_configure(
-        dmach, 
-        &eink_dma_ch_config,
-        &pio->txf[sm_spiel],
-        &dispdata,
-        DISPDATASIZE,
-        false // true to start imeadeately, false to start later
-    );
-
-    while (1)
-    {
-        uint counter;
-
-        if(!dma_channel_is_busy(dmach))
-        {
-            // once DMA is no longer busy, load new data and restart transfer
-            dispdata[0] = 0; 
-            dispdata[1] = counter;
-            counter++;
-           
-            //dma_channel_set_read_addr(dmach, &dispdata, true); // need to Re-set read adress, as that is aut-incremented during a transfer. If a transfer is re-started without re-setting the read adres, it will read from there onwards. 
-            //and sset_read_addr re-triggers (true) so no need for dma_channel_start(dmach); // re-start DMA transfer 
-            
-            //TODO: use (re-)starting the DMA transfer to start a rowwrite after other display-setup is done and/or let pio handle setup as well
-        }
-
-        // pio_sm_put_blocking(pio,sm_spiel,counter); // for now, put a dataword this way. Later, figure out DMA to write out a display buffer
-    }
-    */
 }
