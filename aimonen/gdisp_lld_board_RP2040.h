@@ -79,7 +79,7 @@ gpio_put(EINK_LE,on);
 
 /* Set the state of the OE (source driver Output Enable) pin. */
 static inline void setpin_oe(bool_t on) {
-gpio_put(EINK_OE,on);
+gpio_put(EINK_OE,!on);
 }
 
 /* Set the state of the CL (source driver Clock) pin. */
