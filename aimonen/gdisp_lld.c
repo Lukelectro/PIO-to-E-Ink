@@ -5,12 +5,22 @@
 
 /* Low-level E-ink panel driver routines for ED060SC4. */
 
-#include "gfx.h"
-#include "ed060sc4.h"
+// for use withouth uGFX, commented out 
+// #include "gfx.h"
+// #include "ed060sc4.h"
 
-#if GFX_USE_GDISP
+// #if GFX_USE_GDISP for use withouth uGFX, commented out
+//#include "gdisp/lld/emulation.c"
 
-#include "gdisp/lld/emulation.c"
+//added:
+#include "gdisp_lld.h"
+#include <stdbool.h>
+
+/* glue because stdbool is lowercase here */
+#define TRUE true
+#define FALSE false
+/* */
+
 
 /* =================================
  *      Default configuration
@@ -34,7 +44,7 @@
  * This should be atleast 50 ns.
  */
 #ifndef EINK_CLOCKDELAY
-#       define EINK_CLOCKDELAY 0
+#       define EINK_CLOCKDELAY 8 // RP2040 runs at 133 MHz or so
 #endif
 
 /* Width of one framebuffer block.
@@ -74,7 +84,8 @@
  *      Lower level driver functions
  * ==================================== */
 
-#include "gdisp_lld_board.h"
+//#include "gdisp_lld_board.h"
+#include "gdisp_lld_board_RP2040.h"
 
 /** Delay between signal changes, to give time for IO pins to change state. */
 static inline void clockdelay()
@@ -127,7 +138,7 @@ static void hclock()
  *       so you should always scan through the whole display before
  *       starting a new scan.
  */
-static void vscan_start()
+void vscan_start()
 {
     setpin_gmode(TRUE);
     vclock_quick();
@@ -141,7 +152,7 @@ static void vscan_start()
  * Attempts to minimize the leaking of color to other rows by having
  * a long idle period after a medium-length strobe period.
  */
-static void vscan_write()
+void vscan_write()
 {
     setpin_ckv(TRUE);
     setpin_oe(TRUE);
@@ -154,7 +165,7 @@ static void vscan_write()
 /** Waveform used when clearing the display. Strobes a row of data to the
  * screen, but does not mind some of it leaking to other rows.
  */
-static void vscan_bulkwrite()
+void vscan_bulkwrite()
 {
     setpin_ckv(TRUE);
     eink_delay(20);
@@ -165,7 +176,7 @@ static void vscan_bulkwrite()
 /** Waveform for skipping a vertical row without writing anything.
  * Attempts to minimize the amount of change in any row.
  */
-static void vscan_skip()
+void vscan_skip()
 {
     setpin_ckv(TRUE);
     eink_delay(1);
@@ -176,7 +187,7 @@ static void vscan_skip()
 /** Stop the vertical scan. The significance of this escapes me, but it seems
  * necessary or the next vertical scan may be corrupted.
  */
-static void vscan_stop()
+void vscan_stop()
 {
     setpin_gmode(FALSE);
     vclock_quick();
@@ -187,7 +198,7 @@ static void vscan_stop()
 }
 
 /** Start updating the source driver data (from left to right). */
-static void hscan_start()
+void hscan_start()
 {
     /* Disable latching and output enable while we are modifying the row. */
     setpin_le(FALSE);
@@ -198,7 +209,7 @@ static void hscan_start()
 }
 
 /** Write data to the horizontal row. */
-static void hscan_write(const uint8_t *data, int count)
+void hscan_write(const uint8_t *data, int count)
 {
     while (count--)
     {
@@ -212,7 +223,7 @@ static void hscan_write(const uint8_t *data, int count)
 
 /** Finish and transfer the row to the source drivers.
  * Does not set the output enable, so the drivers are not yet active. */
-static void hscan_stop()
+void hscan_stop()
 {
     /* End the scan */
     setpin_sph(TRUE);
@@ -225,7 +236,7 @@ static void hscan_stop()
 }
 
 /** Turn on the power to the E-Ink panel, observing proper power sequencing. */
-static void power_on()
+void power_on()
 {
     unsigned i;
     
@@ -241,11 +252,11 @@ static void power_on()
     setpin_spv(TRUE);
     
     /* Min. 100 microsecond delay after digital supply */
-    gfxSleepMicroseconds(100);
+    sleep_ms(100); // TODO: eliminate busy waits
     
     /* Then negative voltages and min. 1000 microsecond delay. */
     setpower_vneg(TRUE);
-    gfxSleepMicroseconds(1000);
+    sleep_ms(1000); // TODO: eliminate busy waits
     
     /* Finally the positive voltages. */
     setpower_vpos(TRUE);
@@ -258,14 +269,14 @@ static void power_on()
 }
 
 /** Turn off the power, observing proper power sequencing. */
-static void power_off()
+void power_off()
 {
     /* First the high voltages */
     setpower_vpos(FALSE);
     setpower_vneg(FALSE);
     
     /* Wait for any capacitors to drain */
-    gfxSleepMilliseconds(100);
+    sleep_ms(100); // TODO: eliminate busy waits
     
     /* Then put all signals and digital supply to ground. */
     setpin_le(FALSE);
@@ -386,7 +397,7 @@ static void clear_block_map()
 }
 
 /** Flush all the buffered rows to display. */
-static void flush_buffers()
+void flush_buffers()
 {
     unsigned by, dy, i;
     
@@ -471,20 +482,6 @@ bool_t gdisp_lld_init(void)
     
     clear_block_map();
     
-    /* Initialize the global GDISP structure */
-    GDISP.Width = GDISP_SCREEN_WIDTH;
-    GDISP.Height = GDISP_SCREEN_HEIGHT;
-    GDISP.Orientation = GDISP_ROTATE_0;
-    GDISP.Powermode = powerOff;
-    GDISP.Backlight = 0;
-    GDISP.Contrast = 0;
-#if GDISP_NEED_VALIDATION || GDISP_NEED_CLIP
-    GDISP.clipx0 = 0;
-    GDISP.clipy0 = 0;
-    GDISP.clipx1 = GDISP.Width;
-    GDISP.clipy1 = GDISP.Height;
-#endif
-    
     return TRUE;
 }
 
@@ -519,44 +516,13 @@ void gdisp_lld_draw_pixel(coord_t x, coord_t y, color_t color)
     block->data[dy][dx / EINK_PPB] = byte;
 }
 
-#if !GDISP_NEED_CONTROL
-#error You must enable GDISP_NEED_CONTROL for the E-Ink driver.
-#endif
 
-void gdisp_lld_control(unsigned what, void *value) {
-    gdisp_powermode_t newmode;
-    
-    switch(what)
-    {
-        case GDISP_CONTROL_POWER:
-            newmode = (gdisp_powermode_t)value;
-            
-            if (GDISP.Powermode == newmode)
-                return;
-            
-            if (newmode == powerOn)
-            {
-                power_on();
-            }
-            else
-            {
-                flush_buffers();
-                power_off();
-            }
-            GDISP.Powermode = newmode;
-            break;
-        
-        case GDISP_CONTROL_FLUSH:
-            flush_buffers();
-            break;
-    }
-}
 
 /* ===============================
  *       Accelerated routines
  * =============================== */
 
-#if GDISP_HARDWARE_CLEARS
+//#if GDISP_HARDWARE_CLEARS
 
 static void subclear(color_t color)
 {
@@ -589,16 +555,16 @@ void gdisp_lld_clear(color_t color)
     if (EINK_BLINKCLEAR)
     {
         subclear(!color);
-        gfxSleepMilliseconds(50);
+       sleep_ms(50); // TODO: eliminate busy waits
     }
     
     for (i = 0; i < EINK_CLEARCOUNT; i++)
     {
         subclear(color);
-        gfxSleepMilliseconds(10);
+        sleep_ms(10); // TODO: eliminate busy waits
     }
     
 }
-#endif
+//#endif
 
-#endif
+//#endif

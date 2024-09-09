@@ -4,6 +4,7 @@
 #include "hardware/dma.h"
 #include "pico/binary_info.h"
 #include "ED060SC4_row_write.pio.h"
+#include "aimonen/gdisp_lld.h"
 
 const uint LED_PIN = 14; // now uses pin 15,16,17,18,19,20,21,22 to output 8 bit parallel data
 #define DISPDATASIZE (1+800*600*2/32)
@@ -44,10 +45,21 @@ int main()
 
     dispdata_init();
 
-    EPD_Init();
-    EPD_Power_On();
-    EPD_Clear(); // dit nog in software
+    gdisp_lld_init();
+    power_on();
+    gdisp_lld_clear(1);
+// add a bit of test data TODO: sloop er nog wat meer uit en bouw om naar 1 globale display buffer? eventueel die slimme blok functie behouden, hoewel, nadat de PIO gebruikt gaat worden is het toch niet meer
+// te porten naar iets zonder pio, en als het toch niet meer te porten is naar iets zonder pio hoeft het ook niet meer te werken op dingen met te weinig ram waardoor die blokken nodig zijn
+    for(uint x=200;x<400;x++){
+        for(uint y=200;y<400;y++){
+        gdisp_lld_draw_pixel(x,y,1);
+    }
+    }
 
+    flush_buffers();
+
+    while(1); // nog even zonder pio testen
+    
     rowwrite_program_init(pio,sm_dmarw,offset_dmarw,14,10,2); // now let PIO snatch the pins
 
     
@@ -72,6 +84,6 @@ int main()
     busy_wait_ms(500); // then wait a bit longer just for the bit in FIFO to be writen to the display. 
     //(TODO: in practice CPU should be doing something usefull and/or the busy/done signal should be used to know when to powerdown the eink)
 
-    EPD_Power_Off(); 
+    power_off(); 
 
 }
