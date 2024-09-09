@@ -27,11 +27,11 @@
  * ================================= */
 
 #ifndef GDISP_SCREEN_HEIGHT
-#       define GDISP_SCREEN_HEIGHT 600
+#       define GDISP_SCREEN_HEIGHT 800 // was 600, but -SC7 is 3:4 where -SC4 is 4:3
 #endif
 
 #ifndef GDISP_SCREEN_WIDTH
-#       define GDISP_SCREEN_WIDTH 800
+#       define GDISP_SCREEN_WIDTH 600 // was 800, but -SC7 is 3:4 where -SC4 is 4:3
 #endif
 
 /* Number of pixels per byte */
@@ -40,11 +40,11 @@
 #endif
 
 /* Delay for generating clock pulses.
- * Unit is approximate clock cycles of the CPU (0 to 15).
- * This should be atleast 50 ns.
+ * Unit is approximate clock cycles of the CPU.
+ * This should be atleast 50 ns. (on-SC4, possible minimum is 200 ns + on ED060SC7)
  */
 #ifndef EINK_CLOCKDELAY
-#       define EINK_CLOCKDELAY 12 // RP2040 runs at 133 MHz or so
+#       define EINK_CLOCKDELAY  30 
 #endif
 
 /* Width of one framebuffer block.
@@ -88,31 +88,13 @@
 #include "gdisp_lld_board_RP2040.h"
 
 /** Delay between signal changes, to give time for IO pins to change state. */
+// RP2040 runs at 125 or 133 MHz or so, and the -sc7 e-ink is slower then the -sc 4, requiring Tle_off of 200 ns min where sc-4 has 40 min.
+// at 133 Mhz, 7.5 ns per cycle. The NOPS as used here originally seemed not to work, but the SDK provides a "busy_wait_at_least_cycles" function so use that instead
 static inline void clockdelay()
 {
-#if EINK_CLOCKDELAY & 1
-    asm("nop");
-#endif
-#if EINK_CLOCKDELAY & 2
-    asm("nop");
-    asm("nop");
-#endif
-#if EINK_CLOCKDELAY & 4
-    asm("nop");
-    asm("nop");
-    asm("nop");
-    asm("nop");
-#endif
-#if EINK_CLOCKDELAY & 8
-    asm("nop");
-    asm("nop");
-    asm("nop");
-    asm("nop");
-    asm("nop");
-    asm("nop");
-    asm("nop");
-    asm("nop");
-#endif
+
+busy_wait_at_least_cycles(EINK_CLOCKDELAY);
+
 }
 
 /** Fast vertical clock pulse for gate driver, used during initializations */
