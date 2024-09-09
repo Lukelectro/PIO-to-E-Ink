@@ -44,7 +44,7 @@
  * This should be atleast 50 ns.
  */
 #ifndef EINK_CLOCKDELAY
-#       define EINK_CLOCKDELAY 8 // RP2040 runs at 133 MHz or so
+#       define EINK_CLOCKDELAY 12 // RP2040 runs at 133 MHz or so
 #endif
 
 /* Width of one framebuffer block.

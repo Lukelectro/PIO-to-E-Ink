@@ -45,7 +45,7 @@ static inline void init_board(void) {
 
  /* set pin functions to gpio, set them to output, etc*/
 gpio_init_mask(1<<EINK_CL|1<<EINK_LE|1<<EINK_OE|1<<EINK_SPH|1<<EINK_GMODE|1<<EINK_SPV|1<<EINK_CKV|1<<SMPS_CTRL|1<<EINK_VDD|1<<VPOS_CTRL|1<<VNEG_CTRL|0xFF<<EINK_D0);
-gpio_set_dir_out_masked(1<<EINK_CL|1<<EINK_LE|1<<EINK_OE|1<<EINK_SPH|1<<EINK_GMODE|1<<EINK_SPV|1<<EINK_CKV|1<<SMPS_CTRL||1<<EINK_VDD|1<<VPOS_CTRL|1<<VNEG_CTRL|0xFF<<EINK_D0);
+gpio_set_dir_out_masked(1<<EINK_CL|1<<EINK_LE|1<<EINK_OE|1<<EINK_SPH|1<<EINK_GMODE|1<<EINK_SPV|1<<EINK_CKV|1<<SMPS_CTRL|1<<EINK_VDD|1<<VPOS_CTRL|1<<VNEG_CTRL|0xFF<<EINK_D0);
 // TODO: set pin function to SIO, which is default, but considering the plan to also use PIO to drive the display...
 
 }

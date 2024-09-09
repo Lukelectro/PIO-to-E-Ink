@@ -30,18 +30,18 @@ int main()
     bi_decl(bi_1pin_with_name(LED_PIN, "LED op breadboard"));
     stdio_init_all();
     
-    pio_sm_claim(pio0,0); // reserve PIO0, State machine 0 for the DMA transfer
+    //pio_sm_claim(pio0,0); // reserve PIO0, State machine 0 for the DMA transfer
 
-    PIO pio = pio0;
-    uint offset_dmarw = pio_add_program(pio, &rowwrite_program);
-    uint sm_dmarw = pio_claim_unused_sm(pio, true);
+    //PIO pio = pio0;
+    //uint offset_dmarw = pio_add_program(pio, &rowwrite_program);
+    //uint sm_dmarw = pio_claim_unused_sm(pio, true);
 
-    int dmach = dma_claim_unused_channel(true);
-    dma_channel_config eink_dma_ch_config = dma_channel_get_default_config(dmach);
+    //int dmach = dma_claim_unused_channel(true);
+    //dma_channel_config eink_dma_ch_config = dma_channel_get_default_config(dmach);
     //default config has read increment and write to fixed adres, 32 bits wide, which is indeed what's needed here
 
-    uint dreq = pio_get_dreq(pio,sm_dmarw,true); // get the correct DREQ for this pio & statemachine
-    channel_config_set_dreq(&eink_dma_ch_config, dreq); // sets DRE
+    //uint dreq = pio_get_dreq(pio,sm_dmarw,true); // get the correct DREQ for this pio & statemachine
+    //channel_config_set_dreq(&eink_dma_ch_config, dreq); // sets DRE
 
     dispdata_init();
 
@@ -56,14 +56,20 @@ int main()
     }
     }
 
-    flush_buffers();
+        for(uint x=300;x<350;x++){
+        for(uint y=250;y<275;y++){
+        gdisp_lld_draw_pixel(x,y,0);
+    }
+    }
+
+    flush_buffers(); // schrijf naar display
 
     while(1); // nog even zonder pio testen
     
-    rowwrite_program_init(pio,sm_dmarw,offset_dmarw,14,10,2); // now let PIO snatch the pins
+    //rowwrite_program_init(pio,sm_dmarw,offset_dmarw,14,10,2); // now let PIO snatch the pins
 
     
-// write the config and DO NOT YET start the transfer
+/* write the config and DO NOT YET start the transfer
    dma_channel_configure(
         dmach, 
         &eink_dma_ch_config,
@@ -85,5 +91,5 @@ int main()
     //(TODO: in practice CPU should be doing something usefull and/or the busy/done signal should be used to know when to powerdown the eink)
 
     power_off(); 
-
+*/
 }
