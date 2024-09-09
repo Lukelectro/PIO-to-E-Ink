@@ -104,7 +104,7 @@ gpio_put(EINK_CKV,on);
 
 /* Set the state of the GMODE (gate driver Gate Mode) pin. */
 static inline void setpin_gmode(bool_t on) {
-gpio_put(EINK_GMODE,on); // invert gmode, as with zepray
+gpio_put(EINK_GMODE,on); 
 }
 
 /* Set the state of the SPV (gate driver Start Pulse Vertical) pin. */

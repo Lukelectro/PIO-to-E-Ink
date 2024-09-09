@@ -100,13 +100,26 @@ busy_wait_at_least_cycles(EINK_CLOCKDELAY);
 /** Fast vertical clock pulse for gate driver, used during initializations */
 static void vclock_quick()
 {
-    //If CKV works inverted, try inverting it here?
-    //setpin_ckv(TRUE);
-    setpin_ckv(FALSE);
-    eink_delay(1);
+/* original. VVV Does not work on ED060SC07. Inverting CKV does, so setting it false first and true later. But then it is high in rest. And I want to avoid that */
+
+/*  
     setpin_ckv(TRUE);
+    eink_delay(1); 
+    setpin_ckv(FALSE);
+    eink_delay(4); 
+    
+*/
+/* / original ^^^ */
+
+/* changed: VVV */
     //setpin_ckv(FALSE);
-    eink_delay(4);
+    setpin_ckv(TRUE);
+    eink_delay(1); // TODO: might be too fast? for --sc7 (was 1)
+    setpin_ckv(false); // was setpin_ckv(FALSE);
+    //setpin_ckv(TRUE);
+    eink_delay(4); // was 4
+    //setpin_ckv(FALSE);
+     setpin_ckv(true);
 }
 
 /** Horizontal clock pulse for clocking data into source driver */
@@ -132,6 +145,7 @@ void vscan_start()
     vclock_quick();
     setpin_spv(TRUE);
     vclock_quick();
+    //setpin_ckv(TRUE); //added: leave VCLK high to write data? (experimental, since inverting vclk seemed to work but also only inverting it during vclock_quick() worked instead of entirely everywhere)
 }
 
 /** Waveform for strobing a row of data onto the display.
@@ -153,12 +167,9 @@ void vscan_write()
  */
 void vscan_bulkwrite()
 {
-    //if CKV is indeed inverted, invert it here too. TODO: test if it is not justs timing? So make the eink_delay longer withouth inverting?
-    //setpin_ckv(TRUE);
+    setpin_ckv(TRUE);
+    eink_delay(20);
     setpin_ckv(FALSE);
-    eink_delay(20); 
-   // setpin_ckv(FALSE);
-   setpin_ckv(TRUE);
     eink_delay(200);
 }
 
