@@ -79,7 +79,7 @@ gpio_put(EINK_LE,on);
 
 /* Set the state of the OE (source driver Output Enable) pin. */
 static inline void setpin_oe(bool_t on) {
-gpio_put(EINK_OE,!on); 
+gpio_put(EINK_OE,on); 
 }
 
 /* Set the state of the CL (source driver Clock) pin. */
@@ -99,12 +99,12 @@ gpio_put_masked(0xFF<<EINK_D0,value<<EINK_D0);
 
 /* Set the state of the CKV (gate driver Clock Vertical) pin. */
 static inline void setpin_ckv(bool_t on) {
-gpio_put(EINK_CKV,!on); // invert gmode, as with zepray
+gpio_put(EINK_CKV,on); 
 }
 
 /* Set the state of the GMODE (gate driver Gate Mode) pin. */
 static inline void setpin_gmode(bool_t on) {
-gpio_put(EINK_GMODE,!on); // invert gmode, as with zepray
+gpio_put(EINK_GMODE,on); // invert gmode, as with zepray
 }
 
 /* Set the state of the SPV (gate driver Start Pulse Vertical) pin. */

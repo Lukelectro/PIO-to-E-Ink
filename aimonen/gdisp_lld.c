@@ -100,9 +100,12 @@ busy_wait_at_least_cycles(EINK_CLOCKDELAY);
 /** Fast vertical clock pulse for gate driver, used during initializations */
 static void vclock_quick()
 {
-    setpin_ckv(TRUE);
-    eink_delay(1);
+    //If CKV works inverted, try inverting it here?
+    //setpin_ckv(TRUE);
     setpin_ckv(FALSE);
+    eink_delay(1);
+    setpin_ckv(TRUE);
+    //setpin_ckv(FALSE);
     eink_delay(4);
 }
 
@@ -122,7 +125,8 @@ static void hclock()
  */
 void vscan_start()
 {
-    setpin_gmode(TRUE);
+    //setpin_gmode(TRUE);
+    setpin_gmode(FALSE); // GMODE might be inverted on ED060SC7? It does not work with GMODE TRUE here
     vclock_quick();
     setpin_spv(FALSE);
     vclock_quick();
@@ -138,8 +142,7 @@ void vscan_write()
 {
     setpin_ckv(TRUE);
     setpin_oe(TRUE);
-    // eink_delay(5);
-    eink_delay(50); // TODO: test what it does if writing a bit longer
+    eink_delay(5);
     setpin_oe(FALSE);
     setpin_ckv(FALSE);
     eink_delay(200);
@@ -150,9 +153,12 @@ void vscan_write()
  */
 void vscan_bulkwrite()
 {
-    setpin_ckv(TRUE);
-    eink_delay(20);
+    //if CKV is indeed inverted, invert it here too. TODO: test if it is not justs timing? So make the eink_delay longer withouth inverting?
+    //setpin_ckv(TRUE);
     setpin_ckv(FALSE);
+    eink_delay(20); 
+   // setpin_ckv(FALSE);
+   setpin_ckv(TRUE);
     eink_delay(200);
 }
 
@@ -172,7 +178,8 @@ void vscan_skip()
  */
 void vscan_stop()
 {
-    setpin_gmode(FALSE);
+    // setpin_gmode(FALSE);
+    setpin_gmode(TRUE); // If GMODE indeed works inverted, then it needs to be set TRUE here
     vclock_quick();
     vclock_quick();
     vclock_quick();
