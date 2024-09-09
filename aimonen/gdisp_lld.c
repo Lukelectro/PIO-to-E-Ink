@@ -44,7 +44,7 @@
  * This should be atleast 50 ns. (on-SC4, possible minimum is 200 ns + on ED060SC7)
  */
 #ifndef EINK_CLOCKDELAY
-#       define EINK_CLOCKDELAY  30 
+#       define EINK_CLOCKDELAY  60 
 #endif
 
 /* Width of one framebuffer block.
@@ -72,7 +72,7 @@
 
 /* Number of passes to use when clearing the display */
 #ifndef EINK_CLEARCOUNT
-#       define EINK_CLEARCOUNT 4
+#       define EINK_CLEARCOUNT 10
 #endif
 
 /* Number of passes to use when writing to the display */
@@ -138,7 +138,8 @@ void vscan_write()
 {
     setpin_ckv(TRUE);
     setpin_oe(TRUE);
-    eink_delay(5);
+    // eink_delay(5);
+    eink_delay(50); // TODO: test what it does if writing a bit longer
     setpin_oe(FALSE);
     setpin_ckv(FALSE);
     eink_delay(200);
