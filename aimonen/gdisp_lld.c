@@ -100,26 +100,10 @@ busy_wait_at_least_cycles(EINK_CLOCKDELAY);
 /** Fast vertical clock pulse for gate driver, used during initializations */
 static void vclock_quick()
 {
-/* original. VVV Does not work on ED060SC07. Inverting CKV does, so setting it false first and true later. But then it is high in rest. And I want to avoid that */
-
-/*  
     setpin_ckv(TRUE);
     eink_delay(1); 
     setpin_ckv(FALSE);
     eink_delay(4); 
-    
-*/
-/* / original ^^^ */
-
-/* changed: VVV */
-    //setpin_ckv(FALSE);
-    setpin_ckv(TRUE);
-    eink_delay(1); // TODO: might be too fast? for --sc7 (was 1)
-    setpin_ckv(false); // was setpin_ckv(FALSE);
-    //setpin_ckv(TRUE);
-    eink_delay(4); // was 4
-    //setpin_ckv(FALSE);
-     setpin_ckv(true);
 }
 
 /** Horizontal clock pulse for clocking data into source driver */
@@ -143,9 +127,11 @@ void vscan_start()
     vclock_quick();
     setpin_spv(FALSE);
     vclock_quick();
+    // for ed060SC7      VV
+    setpin_ckv(TRUE); // instead of inverting CKV or always leaving it high, it suffices to raise it here. The next vclk_quick will lower it again. I don't understand why this is needed, but it works.
+    // ed060sc7          ^^ 
     setpin_spv(TRUE);
     vclock_quick();
-    //setpin_ckv(TRUE); //added: leave VCLK high to write data? (experimental, since inverting vclk seemed to work but also only inverting it during vclock_quick() worked instead of entirely everywhere)
 }
 
 /** Waveform for strobing a row of data onto the display.

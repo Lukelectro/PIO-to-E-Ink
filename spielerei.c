@@ -63,8 +63,9 @@ int main()
     }
     }
 
-    flush_buffers(); // schrijf naar display
+    flush_buffers(); // schrijf naar display (note: it wrote a bit before due to lack of buffer, oh well)
 
+    power_off();
     while(1); // nog even zonder pio testen
     
     //rowwrite_program_init(pio,sm_dmarw,offset_dmarw,14,10,2); // now let PIO snatch the pins
