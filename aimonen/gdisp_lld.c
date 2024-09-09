@@ -72,7 +72,7 @@
 
 /* Number of passes to use when clearing the display */
 #ifndef EINK_CLEARCOUNT
-#       define EINK_CLEARCOUNT 10
+#       define EINK_CLEARCOUNT 4
 #endif
 
 /* Number of passes to use when writing to the display */
