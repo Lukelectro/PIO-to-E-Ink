@@ -27,11 +27,11 @@
  * ================================= */
 
 #ifndef GDISP_SCREEN_HEIGHT
-#       define GDISP_SCREEN_HEIGHT 800 // was 600, but -SC7 is 3:4 where -SC4 is 4:3
+#       define GDISP_SCREEN_HEIGHT 600 // was 600, but -SC7 is 3:4 where -SC4 is 4:3
 #endif
 
 #ifndef GDISP_SCREEN_WIDTH
-#       define GDISP_SCREEN_WIDTH 600 // was 800, but -SC7 is 3:4 where -SC4 is 4:3
+#       define GDISP_SCREEN_WIDTH 800 // was 800, but -SC7 is 3:4 where -SC4 is 4:3 // perhaps rotation is not done here?
 #endif
 
 /* Number of pixels per byte */
@@ -50,13 +50,13 @@
 /* Width of one framebuffer block.
  * Must be divisible by EINK_PPB and evenly divide GDISP_SCREEN_WIDTH. */
 #ifndef EINK_BLOCKWIDTH
-#       define EINK_BLOCKWIDTH 600 // was 20
+#       define EINK_BLOCKWIDTH 800 // was 20
 #endif
 
 /* Height of one framebuffer block.
  * Must evenly divide GDISP_SCREEN_WIDTH. */
 #ifndef EINK_BLOCKHEIGHT
-#       define EINK_BLOCKHEIGHT 800 // was 20
+#       define EINK_BLOCKHEIGHT 600 // was 20
 #endif
 
 /* Number of block buffers to use for framebuffer emulation. */
