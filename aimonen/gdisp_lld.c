@@ -122,8 +122,7 @@ static void hclock()
  */
 void vscan_start()
 {
-    //setpin_gmode(TRUE);
-    setpin_gmode(FALSE); // GMODE might be inverted on ED060SC7? It does not work with GMODE TRUE here
+    setpin_gmode(TRUE);
     vclock_quick();
     setpin_spv(FALSE);
     vclock_quick();
@@ -175,8 +174,7 @@ void vscan_skip()
  */
 void vscan_stop()
 {
-    // setpin_gmode(FALSE);
-    setpin_gmode(TRUE); // If GMODE indeed works inverted, then it needs to be set TRUE here
+    setpin_gmode(FALSE);
     vclock_quick();
     vclock_quick();
     vclock_quick();
