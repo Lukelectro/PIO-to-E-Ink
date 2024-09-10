@@ -50,18 +50,18 @@
 /* Width of one framebuffer block.
  * Must be divisible by EINK_PPB and evenly divide GDISP_SCREEN_WIDTH. */
 #ifndef EINK_BLOCKWIDTH
-#       define EINK_BLOCKWIDTH 20
+#       define EINK_BLOCKWIDTH 600 // was 20
 #endif
 
 /* Height of one framebuffer block.
  * Must evenly divide GDISP_SCREEN_WIDTH. */
 #ifndef EINK_BLOCKHEIGHT
-#       define EINK_BLOCKHEIGHT 20
+#       define EINK_BLOCKHEIGHT 800 // was 20
 #endif
 
 /* Number of block buffers to use for framebuffer emulation. */
 #ifndef EINK_NUMBUFFERS
-#       define EINK_NUMBUFFERS 40
+#       define EINK_NUMBUFFERS 1 // was 40
 #endif
 
 /* Do a "blinking" clear, i.e. clear to opposite polarity first.
