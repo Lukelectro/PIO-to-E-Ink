@@ -23,15 +23,15 @@
 
 
 /* =================================
- *      Default configuration
+ *      configuration
  * ================================= */
 
 #ifndef GDISP_SCREEN_HEIGHT
-#       define GDISP_SCREEN_HEIGHT 600 // was 600, but -SC7 is 3:4 where -SC4 is 4:3
+#       define GDISP_SCREEN_HEIGHT 600 // Y was 600, but -SC7 is 3:4 where -SC4 is 4:3
 #endif
 
 #ifndef GDISP_SCREEN_WIDTH
-#       define GDISP_SCREEN_WIDTH 800 // was 800, but -SC7 is 3:4 where -SC4 is 4:3 // perhaps rotation is not done here?
+#       define GDISP_SCREEN_WIDTH 800 //X was 800, but -SC7 is 3:4 where -SC4 is 4:3 // perhaps rotation is not done here?
 #endif
 
 /* Number of pixels per byte */
@@ -45,23 +45,6 @@
  */
 #ifndef EINK_CLOCKDELAY
 #       define EINK_CLOCKDELAY  60 
-#endif
-
-/* Width of one framebuffer block.
- * Must be divisible by EINK_PPB and evenly divide GDISP_SCREEN_WIDTH. */
-#ifndef EINK_BLOCKWIDTH
-#       define EINK_BLOCKWIDTH 800 // was 20
-#endif
-
-/* Height of one framebuffer block.
- * Must evenly divide GDISP_SCREEN_WIDTH. */
-#ifndef EINK_BLOCKHEIGHT
-#       define EINK_BLOCKHEIGHT 600 // was 20
-#endif
-
-/* Number of block buffers to use for framebuffer emulation. */
-#ifndef EINK_NUMBUFFERS
-#       define EINK_NUMBUFFERS 1 // was 40
 #endif
 
 /* Do a "blinking" clear, i.e. clear to opposite polarity first.
@@ -86,6 +69,8 @@
 
 //#include "gdisp_lld_board.h"
 #include "gdisp_lld_board_RP2040.h"
+
+uint32_t screenbuffer[GDISP_SCREEN_HEIGHT*GDISP_SCREEN_WIDTH/(EINK_PPB*4)] // 800*600 screen with 4 pixels per byte and 4 byte per uint32_t makes 30000 elements
 
 /** Delay between signal changes, to give time for IO pins to change state. */
 // RP2040 runs at 125 or 133 MHz or so, and the -sc7 e-ink is slower then the -sc 4, requiring Tle_off of 200 ns min where sc-4 has 40 min.
@@ -301,41 +286,6 @@ void EPD_power_off()
 #error EINK_BLOCKWIDTH must be evenly divisible by EINK_PPB
 #endif
 
-#if EINK_NUMBUFFERS > 254
-#error EINK_NUMBUFFERS must be at most 254.
-#endif
-
-#define BLOCKS_Y (GDISP_SCREEN_HEIGHT / EINK_BLOCKHEIGHT)
-#define BLOCKS_X (GDISP_SCREEN_WIDTH / EINK_BLOCKWIDTH)
-#define WIDTH_BYTES (EINK_BLOCKWIDTH / EINK_PPB)
-
-/* Buffers that store the data for a small area of the display. */
-typedef struct {
-    uint8_t data[EINK_BLOCKHEIGHT][WIDTH_BYTES];
-} block_t;
-
-static uint8_t g_next_block; /* Index of the next free block buffer. */
-static block_t g_blocks[EINK_NUMBUFFERS];
-
-/* Map that stores the buffers associated to each area of the display.
- * Value of 0 means that the block is not allocated.
- * Other values are the index in g_blocks + 1.
- */
-static uint8_t g_blockmap[BLOCKS_Y][BLOCKS_X]; 
-
-/** Check if the row contains any allocated blocks. */
-static bool_t blocks_on_row(unsigned by)
-{
-    unsigned bx;
-    for (bx = 0; bx < BLOCKS_X; bx++)
-    {
-        if (g_blockmap[by][bx] != 0)
-        {
-            return TRUE;
-        }
-    }
-    return FALSE;
-}
 
 /** Write out a block row. */
 static void write_block_row(unsigned by)
@@ -366,23 +316,9 @@ static void write_block_row(unsigned by)
     }
 }
 
-/** Clear the block map, i.e. deallocate all blocks */
-static void clear_block_map()
-{
-    unsigned bx, by;
-    for (by = 0; by < BLOCKS_Y; by++)
-    {
-        for (bx = 0; bx < BLOCKS_X; bx++)
-        {
-            g_blockmap[by][bx] = 0;
-        }
-    }
-    
-    g_next_block = 0;
-}
 
-/** Flush all the buffered rows to display. */
-void flush_buffers()
+/** write buffer to display. */
+void screenrefresh()
 {
     unsigned by, dy, i;
     
@@ -390,66 +326,17 @@ void flush_buffers()
     {
         vscan_start();
         
-        for (by = 0; by < BLOCKS_Y; by++)
+        for (y = 0; y < GDISP_SCREEN_HEIGHT; y++)
         {
-            if (!blocks_on_row(by))
-            {
-                /* Skip the whole row of blocks. */
-                for (dy = 0; dy < EINK_BLOCKHEIGHT; dy++)
-                {
-                    vscan_skip();
-                }
-            }
-            else
-            {
-                /* Write out the blocks. */
-                write_block_row(by);
-            }
+            /* Write out the blocks. */
+            write_block_row(y);
         }
         
         vscan_stop();
     }
-    
-    clear_block_map();
 }
 
-/** Initialize a newly allocated block. */
-static void zero_block(block_t *block)
-{
-    unsigned dx, dy;
-    for (dy = 0; dy < EINK_BLOCKHEIGHT; dy++)
-    {
-        for (dx = 0; dx < WIDTH_BYTES; dx++)
-        {
-            block->data[dy][dx] = 0;
-        }
-    }
-}
 
-/** Allocate a buffer
- * Automatically flushes if all buffers are full. */
-static block_t *alloc_buffer(unsigned bx, unsigned by)
-{
-    block_t *result;
-    if (g_blockmap[by][bx] == 0)
-    {
-        if (g_next_block >= EINK_NUMBUFFERS)
-        {
-            flush_buffers();
-        }
-        
-        result = &g_blocks[g_next_block];
-        g_blockmap[by][bx] = g_next_block + 1;
-        g_next_block++;
-        zero_block(result);
-        return result;
-    }
-    else
-    {
-        result = &g_blocks[g_blockmap[by][bx] - 1];
-        return result;
-    }
-}
 
 /* ===============================
  *         Public functions
@@ -464,43 +351,35 @@ bool_t gdisp_lld_init(void)
      * display, which in turn causes the image to leak slowly away.
      */
     EPD_power_off();
-    
-    clear_block_map();
+
+    //TODO: iets dat de buffer wist (memcpy)?
     
     return TRUE;
 }
 
 void gdisp_lld_draw_pixel(coord_t x, coord_t y, color_t color)
-{
-    block_t *block;
-    uint8_t byte;
-    unsigned bx, by, dx, dy;
+{ // todo: perhaps test this with a diagonal line or something, but it needs testing and might contain bugs
+    uint32_t word;
     uint8_t bitpos;
     
-    bx = x / EINK_BLOCKWIDTH;
-    by = y / EINK_BLOCKHEIGHT;
-    dx = x % EINK_BLOCKWIDTH;
-    dy = y % EINK_BLOCKHEIGHT;
-    
-    if (bx < 0 || bx >= BLOCKS_X || by < 0 || by >= BLOCKS_Y)
+    if (x < 0 || x >= GDISP_SCREEN_WIDTH || y < 0 || y >= GDISP_SCREEN_HEIGHT)
         return;
-    
-    block = alloc_buffer(bx, by);
-    
-    bitpos = (6 - 2 * (dx % EINK_PPB));
-    byte = block->data[dy][dx / EINK_PPB];
-    byte &= ~(PIXELMASK << bitpos);
+     
+    bitpos = (30 - 2 * (x % EINK_PPB*4));
+    word = displaybuffer[y][x / (EINK_PPB*4)];
+    word &= ~(PIXELMASK << bitpos);
     if (color)
     {
-        byte |= PIXEL_WHITE << bitpos;
+        word |= PIXEL_WHITE << bitpos;
     }
     else
     {
-        byte |= PIXEL_BLACK << bitpos;   
+        word |= PIXEL_BLACK << bitpos;   
     }
-    block->data[dy][dx / EINK_PPB] = byte;
+    displaybuffer[y][x / (EINK_PPB*4)] = word;
 }
 
+//todo: something that clears the buffer and/or something that erases bits?
 
 
 /* ===============================
