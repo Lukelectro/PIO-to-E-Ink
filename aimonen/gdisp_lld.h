@@ -20,8 +20,8 @@ void vscan_stop();
 void hscan_start();
 void hscan_write();
 void hscan_stop();
-void power_on();
-void power_off();
+void EPD_power_on();
+void EPD_power_off();
 
 void flush_buffers();
 

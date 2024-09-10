@@ -46,7 +46,7 @@ int main()
     dispdata_init();
 
     gdisp_lld_init();
-    power_on();
+    EPD_power_on();
     gdisp_lld_clear(0); // clear to black
      gdisp_lld_clear(1); // clear to white
 // add a bit of test data TODO: sloop er nog wat meer uit en bouw om naar 1 globale display buffer? eventueel die slimme blok functie behouden, hoewel, nadat de PIO gebruikt gaat worden is het toch niet meer
@@ -66,7 +66,7 @@ int main()
 
     flush_buffers(); // schrijf naar display (note: it wrote a bit before due to lack of buffer, oh well)
 
-    power_off();
+    EPD_power_off();
     while(1); // nog even zonder pio testen
     
     //rowwrite_program_init(pio,sm_dmarw,offset_dmarw,14,10,2); // now let PIO snatch the pins

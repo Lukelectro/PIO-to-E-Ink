@@ -221,7 +221,7 @@ void hscan_stop()
 }
 
 /** Turn on the power to the E-Ink panel, observing proper power sequencing. */
-void power_on()
+void EPD_power_on()
 {
     unsigned i;
     
@@ -254,7 +254,7 @@ void power_on()
 }
 
 /** Turn off the power, observing proper power sequencing. */
-void power_off()
+void EPD_power_off()
 {
     /* First the high voltages */
     setpower_vpos(FALSE);
@@ -463,7 +463,7 @@ bool_t gdisp_lld_init(void)
      * Having any pin high could cause voltage leaking to the
      * display, which in turn causes the image to leak slowly away.
      */
-    power_off();
+    EPD_power_off();
     
     clear_block_map();
     
