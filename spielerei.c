@@ -7,6 +7,8 @@
 #include "aimonen/gdisp_lld.h"
 
 const uint LED_PIN = 14; // now uses pin 15,16,17,18,19,20,21,22 to output 8 bit parallel data
+
+#ifdef NEE_DIE_BUFFER_IS_ELDERS_AL_GESMURFT
 #define DISPDATASIZE (1+800*600*2/32)
 uint32_t dispdata[DISPDATASIZE]; // 800*600 pixels, 2bits per pixel, 32 bits per item. Dus 16 pixels per item. 600 pixel per row (of 800), dus komt niet eens mooi uit
 
@@ -23,6 +25,7 @@ void dispdata_init()
        }
     dispdata[0]=0; //initial row skip
 }
+#endif
 
 int main()
 {
@@ -43,7 +46,7 @@ int main()
     //uint dreq = pio_get_dreq(pio,sm_dmarw,true); // get the correct DREQ for this pio & statemachine
     //channel_config_set_dreq(&eink_dma_ch_config, dreq); // sets DRE
 
-    dispdata_init();
+    //dispdata_init();
 
     gdisp_lld_init();
     EPD_power_on();
@@ -52,8 +55,8 @@ int main()
 // add a bit of test data TODO: sloop er nog wat meer uit en bouw om naar 1 globale display buffer? eventueel die slimme blok functie behouden, hoewel, nadat de PIO gebruikt gaat worden is het toch niet meer
 // te porten naar iets zonder pio, en als het toch niet meer te porten is naar iets zonder pio hoeft het ook niet meer te werken op dingen met te weinig ram waardoor die blokken nodig zijn
 // x is 800 pixels, y is 600 pixels, in total
-    for(uint x=0;x<801;x++){
-        for(uint y=0;y<601;y++){
+    for(uint y=200;y<400;y++){
+        for(uint x=200;x<500;x++){
         gdisp_lld_draw_pixel(x,y,0); // black block
     }
     }
@@ -64,7 +67,7 @@ int main()
     }
     }
 
-    flush_buffers(); // schrijf naar display (note: it wrote a bit before due to lack of buffer, oh well)
+    screenrefresh(); // schrijf naar display (note: it wrote a bit before due to lack of buffer, oh well)
 
     EPD_power_off();
     while(1); // nog even zonder pio testen

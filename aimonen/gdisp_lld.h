@@ -23,7 +23,7 @@ void hscan_stop();
 void EPD_power_on();
 void EPD_power_off();
 
-void flush_buffers();
+void screenrefresh();
 
 /* ===============================
  *         Public functions

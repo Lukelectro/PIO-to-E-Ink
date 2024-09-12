@@ -18,6 +18,11 @@
 .wrap_target 
 // row write
 pull ifempty side 0b00; // It will wait here for data: Autopull is enabled, so this is a nop UNLESS it has to wait for data, then it will stall. 
+
+
+
+// DIVIDER --- BELOW IS OLD --- REBUILD ABOVE
+
 ; // start Vscan (col) GMODE 1 (already is), CKV1/0 with pause, SPV0, CKC1/0, SPV1, CKV1/0
 set pins 0b11111 side 0b00; // side set happens before the instruction which happens before the delay. Since clock needs to be set AFTER, set it on next instruction
 nop [1] side 0b01;

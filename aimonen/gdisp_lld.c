@@ -70,7 +70,10 @@
 //#include "gdisp_lld_board.h"
 #include "gdisp_lld_board_RP2040.h"
 
-uint32_t screenbuffer[GDISP_SCREEN_HEIGHT*GDISP_SCREEN_WIDTH/(EINK_PPB*4)] // 800*600 screen with 4 pixels per byte and 4 byte per uint32_t makes 30000 elements
+union screenbuffer{
+uint32_t sb_words[GDISP_SCREEN_HEIGHT][GDISP_SCREEN_WIDTH/(EINK_PPB*4)]; // 800*600 screen with 4 pixels per byte and 4 byte per uint32_t makes 30000 elements
+uint8_t sb_bytes[GDISP_SCREEN_HEIGHT][GDISP_SCREEN_WIDTH/EINK_PPB]; // for byte-acces to the same buffer
+} displaydata;
 
 /** Delay between signal changes, to give time for IO pins to change state. */
 // RP2040 runs at 125 or 133 MHz or so, and the -sc7 e-ink is slower then the -sc 4, requiring Tle_off of 200 ns min where sc-4 has 40 min.
@@ -185,7 +188,8 @@ void hscan_write(const uint8_t *data, int count)
     {
         /* Set the next byte on the data pins */
         setpins_data(*data++);
-        
+        //setpins_data(0x5A); // for test, TODO fix
+
         /* Give a clock pulse to the shift register */
         hclock();
     }
@@ -274,62 +278,24 @@ void EPD_power_off()
 #error Unsupported EINK_PPB value.
 #endif
 
-#if GDISP_SCREEN_HEIGHT % EINK_BLOCKHEIGHT != 0
-#error GDISP_SCREEN_HEIGHT must be evenly divisible by EINK_BLOCKHEIGHT
-#endif
-
-#if GDISP_SCREEN_WIDTH % EINK_BLOCKWIDTH != 0
-#error GDISP_SCREEN_WIDTH must be evenly divisible by EINK_BLOCKWIDTH
-#endif
-
-#if EINK_BLOCKWIDTH % EINK_PPB != 0
-#error EINK_BLOCKWIDTH must be evenly divisible by EINK_PPB
-#endif
-
-
-/** Write out a block row. */
-static void write_block_row(unsigned by)
-{
-    unsigned bx, dy, dx;
-    for (dy = 0; dy < EINK_BLOCKHEIGHT; dy++)
-    {
-        hscan_start();
-        for (bx = 0; bx < BLOCKS_X; bx++)
-        {
-            if (g_blockmap[by][bx] == 0)
-            {
-                for (dx = 0; dx < WIDTH_BYTES; dx++)
-                {
-                    const uint8_t dummy = 0;
-                    hscan_write(&dummy, 1);
-                }
-            }
-            else
-            {
-                block_t *block = &g_blocks[g_blockmap[by][bx] - 1];
-                hscan_write(&block->data[dy][0], WIDTH_BYTES);
-            }
-        }
-        hscan_stop();
-        
-        vscan_write();
-    }
-}
 
 
 /** write buffer to display. */
 void screenrefresh()
 {
-    unsigned by, dy, i;
+    unsigned y, i;
     
-    for (i = 0; i < EINK_WRITECOUNT; i++)
+    for (i = 0; i < EINK_WRITECOUNT; i++) // TODO: for gray, lower writecount? test that!
     {
         vscan_start();
         
         for (y = 0; y < GDISP_SCREEN_HEIGHT; y++)
         {
             /* Write out the blocks. */
-            write_block_row(y);
+            hscan_start();
+            hscan_write(&displaydata.sb_bytes[y][0],GDISP_SCREEN_WIDTH/EINK_PPB); //  800 pixels per row /  4ppb = 200 bytes per row
+            hscan_stop();    
+            vscan_write();
         }
         
         vscan_stop();
@@ -365,8 +331,8 @@ void gdisp_lld_draw_pixel(coord_t x, coord_t y, color_t color)
     if (x < 0 || x >= GDISP_SCREEN_WIDTH || y < 0 || y >= GDISP_SCREEN_HEIGHT)
         return;
      
-    bitpos = (30 - 2 * (x % EINK_PPB*4));
-    word = displaybuffer[y][x / (EINK_PPB*4)];
+    bitpos = (30 - 2 * (x % (EINK_PPB*4)));
+    word = displaydata.sb_words[y][(x / (EINK_PPB*4))];
     word &= ~(PIXELMASK << bitpos);
     if (color)
     {
@@ -376,7 +342,7 @@ void gdisp_lld_draw_pixel(coord_t x, coord_t y, color_t color)
     {
         word |= PIXEL_BLACK << bitpos;   
     }
-    displaybuffer[y][x / (EINK_PPB*4)] = word;
+    displaydata.sb_words[y][(x / (EINK_PPB*4))] = word;
 }
 
 //todo: something that clears the buffer and/or something that erases bits?
@@ -414,7 +380,7 @@ static void subclear(color_t color)
 void gdisp_lld_clear(color_t color)
 {
     unsigned i;
-    clear_block_map();
+    //todo: maybe clear display buffer here?
     
     if (EINK_BLINKCLEAR)
     {
