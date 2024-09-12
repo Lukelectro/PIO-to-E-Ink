@@ -78,14 +78,14 @@ int main()
         false // true to start imeadeately, false to start later
     );
 
-
+    for(int grayframe=0;grayframe<4;grayframe++){
     if(!dma_channel_is_busy(dmach))
         {
             // once DMA is no longer busy, load new data and restart transfer           
             dma_channel_set_read_addr(dmach, &displaydata.sb_words[0][0], true); // re-set read adress and restart transfer
         }
-
     while(dma_channel_is_busy(dmach)){}; // wait untill DMA is done before powering off
+    }
     busy_wait_ms(500); // then wait a bit longer just for the bit in FIFO to be writen to the display. 
     //(TODO: in practice CPU should be doing something usefull and/or the busy/done signal should be used to know when to powerdown the eink)
 
