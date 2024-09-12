@@ -19,50 +19,56 @@
 // row write
 pull ifempty side 0b00; // It will wait here for data: Autopull is enabled, so this is a nop UNLESS it has to wait for data, then it will stall. 
 
-
-
-// DIVIDER --- BELOW IS OLD --- REBUILD ABOVE
-
-; // start Vscan (col) GMODE 1 (already is), CKV1/0 with pause, SPV0, CKC1/0, SPV1, CKV1/0
-set pins 0b11111 side 0b00; // side set happens before the instruction which happens before the delay. Since clock needs to be set AFTER, set it on next instruction
+set pins 0b00110 side 0b00;//default alleen SPH en SPV 1, rest 0
+//vscan start: GMODE 1, vclk, SPV0, VCLK MAAR HOOG LATEN, SPV1, vlck
+set pins 0b00111 side 0b00;
+nop [1] side 0b01; // todo: maybe no extra wait because it takes 1 tick anyway? SO not [1] and [4] but [0] and [3]
+set x 20 [4] side 0b00;
+set pins 0b00101 side 0b00
 nop [1] side 0b01;
-set pins 0b11101 [4] side 0b00;
-nop [1] side 0b01;
-set pins 0b11111 [4] side 0b00;
+set y 10 [4] side 0b00;
+set pins 0b00111 side 0b01
 nop [1] side 0b01;
 nop [4] side 0b00;
 
-colloop:
-; // start Hscan (row)
+colloop: //collumn loop
+//hscan start
 set pins 0b00011 side 0b00;
-nop side 0b10;
-set y 10 side 0b00; // instead of nops, already set the loop iteration counters
-set x 20 side 0b00; 
-rowloop: ;// iterate for each row 20*10=200 bytes per row -- rowwrite loop
-out pins 8 side 0b00 ;
-jmp x-- rowloop side 0b10;
-set x 20 side 0b00;
+
+rowloop: // 200 bytes per row (800 pixels)
+//hscan write (rowwrwrite)
+out pins 8 side 0b00;
+nop side 0b10; 
+jmp x-- rowloop side 0b00;
+set x 20 side 0b00
 jmp y-- rowloop side 0b00;
+// end rowloop
 
-;// hscan_stop and next: sph H, cl H/L, LE H [1], LE0[1]
-set pins 0b00111 side 0b00; // 
-set x 20 side 0b10; 
-set pins 0b10111 [1] side 0b00;
-set pins 0b00111 [1] side 0b00;
+//hscan stop
+set pins 0b00111 side 0b00;
+set y 30 side 0b10;
+nop side 0b00; // todo: can this be eliminated since it is set 0 on next anyway?
+set pins 0b10111 side 0b00; // TODO: perhaps insert a bit of clock delay here
+set pins 0b00111 side 0b00;
 
-//vscan write
-set pins 0b01111 [5] side 0b01
-set x 20 side 0;
-wait200:
-set pins 0b00111 [5] side 0b00
-jmp x-- wait200 [5] side 0;
+//vscan_write
+set pins 0b01111 [5] side 0b01; // set ckv and oe and wait 5 us
+waitabit:
+set pins 0b00111 [7] side 0b00; // clear ckv and oe and wait 200 us (maybe grayscale timing?)
+nop [5] side 0b00;
+// delay is max 7, so make a loop. x is still 20 from last loop
+jmp x-- waitabit side 0b00;
 
-;// for 600 rows: (30 times 20), or rather simpy untill data runs out
+//end colloop
+;// for 600 rows: (30 times 20), or rather simpy untill data runs out because out of scratch registers...
 JMP !OSRE colloop side 0;
 
-
-// todo: greyscale timing? But that is another wave shape!
-// todo: maybe split up to multiple statmachines. One for data, one for control bits, both driven from data in RAM (OUT instructions to set pins to values from array, delays also from aray so variable timing is possible)
+//vscan_stop: gmode 0 and 5 vlclks
+set pins 0b00110 side 0b00;
+set x 5 side 0b01;
+vclkloop:
+nop side 0b00;
+jmp x-- vclkloop side 0b01;
 
 .wrap
 
