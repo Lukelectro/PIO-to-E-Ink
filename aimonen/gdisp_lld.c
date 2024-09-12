@@ -294,6 +294,7 @@ void screenrefresh()
             /* Write out the blocks. */
             hscan_start();
             hscan_write(&displaydata.sb_bytes[y][0],GDISP_SCREEN_WIDTH/EINK_PPB); //  800 pixels per row /  4ppb = 200 bytes per row
+            //hscan_write(&displaydata.sb_words[y][0],GDISP_SCREEN_WIDTH/(EINK_PPB*4)); //  800 pixels per row /  4ppb = 200 bytes per row
             hscan_stop();    
             vscan_write();
         }
@@ -326,12 +327,14 @@ bool_t gdisp_lld_init(void)
 void gdisp_lld_draw_pixel(coord_t x, coord_t y, color_t color)
 { // todo: perhaps test this with a diagonal line or something, but it needs testing and might contain bugs
     uint32_t word;
-    uint8_t bitpos;
+    uint8_t bitpos, byte;
     
     if (x < 0 || x >= GDISP_SCREEN_WIDTH || y < 0 || y >= GDISP_SCREEN_HEIGHT)
         return;
-     
+
+#ifdef WORDWRITE     
     bitpos = (30 - 2 * (x % (EINK_PPB*4)));
+    //bitpos = (2 * (x % (EINK_PPB*4)));
     word = displaydata.sb_words[y][(x / (EINK_PPB*4))];
     word &= ~(PIXELMASK << bitpos);
     if (color)
@@ -343,6 +346,21 @@ void gdisp_lld_draw_pixel(coord_t x, coord_t y, color_t color)
         word |= PIXEL_BLACK << bitpos;   
     }
     displaydata.sb_words[y][(x / (EINK_PPB*4))] = word;
+#else
+// TODO: Try writing in bytes, to see if it is a byte order thing 
+    bitpos = (6 - 2 * (x % (EINK_PPB)));
+    byte = displaydata.sb_bytes[y][(x / (EINK_PPB))];
+    byte &= ~(PIXELMASK << bitpos);
+    if (color)
+    {
+        byte |= PIXEL_WHITE << bitpos;
+    }
+    else
+    {
+        byte |= PIXEL_BLACK << bitpos;   
+    }
+    displaydata.sb_bytes[y][(x / (EINK_PPB))] = byte; 
+#endif
 }
 
 //todo: something that clears the buffer and/or something that erases bits?

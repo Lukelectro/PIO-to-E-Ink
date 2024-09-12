@@ -55,6 +55,7 @@ int main()
 // add a bit of test data TODO: sloop er nog wat meer uit en bouw om naar 1 globale display buffer? eventueel die slimme blok functie behouden, hoewel, nadat de PIO gebruikt gaat worden is het toch niet meer
 // te porten naar iets zonder pio, en als het toch niet meer te porten is naar iets zonder pio hoeft het ook niet meer te werken op dingen met te weinig ram waardoor die blokken nodig zijn
 // x is 800 pixels, y is 600 pixels, in total
+    
     for(uint y=200;y<400;y++){
         for(uint x=200;x<500;x++){
         gdisp_lld_draw_pixel(x,y,0); // black block
@@ -66,6 +67,17 @@ int main()
         gdisp_lld_draw_pixel(x,y,1); // white center block
     }
     }
+ 
+    for(uint y=600;y>0;y--){
+        uint x=y*800/600;
+        gdisp_lld_draw_pixel(x,y,0); // black diagonal line
+    }
+
+        for(uint y=0;y<600;y++){
+        uint x=y;
+        gdisp_lld_draw_pixel(x,y,0); // black diagonal line
+    }
+
 
     screenrefresh(); // schrijf naar display (note: it wrote a bit before due to lack of buffer, oh well)
 
