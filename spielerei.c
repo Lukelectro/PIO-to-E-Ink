@@ -6,31 +6,10 @@
 #include "ED060SC4_row_write.pio.h"
 #include "aimonen/gdisp_lld.h"
 
-const uint LED_PIN = 14; // now uses pin 15,16,17,18,19,20,21,22 to output 8 bit parallel data
-
-#ifdef NEE_DIE_BUFFER_IS_ELDERS_AL_GESMURFT
-#define DISPDATASIZE (1+800*600*2/32)
-uint32_t dispdata[DISPDATASIZE]; // 800*600 pixels, 2bits per pixel, 32 bits per item. Dus 16 pixels per item. 600 pixel per row (of 800), dus komt niet eens mooi uit
-
-// TODO: test of die statemachien steeds de laaste 8 bits pakt van de 32 en de rest wegmikt, of dat ze alle 32 gebruikt worden in groepjes van 8, want afaik is dat configureerbaar maar ik weet niet wat de default is.
-// Done: Met autopull kun je inderdaad alle bits gebruiken, met 'handmatige' pull pak je elke pull 32 nieuwe bits en zou je dus 4 out instructies moeten gebruiken hetgeen geheugen verspilt. (Want autopull kost ook nog eens geen intstructie)
-void dispdata_init()
-{
-        for (uint i = 0; i < DISPDATASIZE; i++)
-        {
-            if (i<(DISPDATASIZE/2))
-                dispdata[i] = 0x55555555; // testen met 0x55555555 en 0xAAAAAAAA om zwart en wit op display te krijgen, 0b01 en 0b10 doen iets maar 11 en 00 zijn 'doe niks'.
-                else
-                dispdata[i] = 0xAAAAAAAA;
-       }
-    dispdata[0]=0; //initial row skip
-}
-#endif
 
 int main()
 {
     bi_decl(bi_program_description("This is a test binary."));
-    bi_decl(bi_1pin_with_name(LED_PIN, "LED op breadboard"));
     stdio_init_all();
     
     //pio_sm_claim(pio0,0); // reserve PIO0, State machine 0 for the DMA transfer

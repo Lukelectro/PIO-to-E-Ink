@@ -332,22 +332,6 @@ void gdisp_lld_draw_pixel(coord_t x, coord_t y, color_t color)
     if (x < 0 || x >= GDISP_SCREEN_WIDTH || y < 0 || y >= GDISP_SCREEN_HEIGHT)
         return;
 
-#ifdef WORDWRITE     
-    bitpos = (30 - 2 * (x % (EINK_PPB*4)));
-    //bitpos = (2 * (x % (EINK_PPB*4)));
-    word = displaydata.sb_words[y][(x / (EINK_PPB*4))];
-    word &= ~(PIXELMASK << bitpos);
-    if (color)
-    {
-        word |= PIXEL_WHITE << bitpos;
-    }
-    else
-    {
-        word |= PIXEL_BLACK << bitpos;   
-    }
-    displaydata.sb_words[y][(x / (EINK_PPB*4))] = word;
-#else
-// TODO: Try writing in bytes, to see if it is a byte order thing 
     bitpos = (6 - 2 * (x % (EINK_PPB)));
     byte = displaydata.sb_bytes[y][(x / (EINK_PPB))];
     byte &= ~(PIXELMASK << bitpos);
@@ -360,7 +344,6 @@ void gdisp_lld_draw_pixel(coord_t x, coord_t y, color_t color)
         byte |= PIXEL_BLACK << bitpos;   
     }
     displaydata.sb_bytes[y][(x / (EINK_PPB))] = byte; 
-#endif
 }
 
 //todo: something that clears the buffer and/or something that erases bits?
