@@ -1,15 +1,63 @@
 /// just so these functions can be called from ... wherever this is included
 #ifndef GDISP_LDD_ONCE
 #define GDISP_LDD_ONCE
-// all sorts of config still in the .c file
 
-#define GDISP_NEED_CONTROL 1 // so it does not complain. TODO: maybe just remove
+
+/* =================================
+ *      configuration
+ * ================================= */
+
+#ifndef GDISP_SCREEN_HEIGHT
+#       define GDISP_SCREEN_HEIGHT 600 // Y was 600, but -SC7 is 3:4 where -SC4 is 4:3
+#endif
+
+#ifndef GDISP_SCREEN_WIDTH
+#       define GDISP_SCREEN_WIDTH 800 //X was 800, but -SC7 is 3:4 where -SC4 is 4:3 // perhaps rotation is not done here?
+#endif
+
+#define INVERT_X FALSE
+#define INVERT_Y TRUE
+
+/* Number of pixels per byte */
+#ifndef EINK_PPB
+#       define EINK_PPB 4
+#endif
+
+/* Delay for generating clock pulses.
+ * Unit is approximate clock cycles of the CPU.
+ * This should be atleast 50 ns. (on-SC4, possible minimum is 200 ns + on ED060SC7)
+ */
+#ifndef EINK_CLOCKDELAY
+#       define EINK_CLOCKDELAY  60 
+#endif
+
+/* Do a "blinking" clear, i.e. clear to opposite polarity first.
+ * This reduces the image persistence. */
+#ifndef EINK_BLINKCLEAR
+#       define EINK_BLINKCLEAR TRUE
+#endif
+
+/* Number of passes to use when clearing the display */
+#ifndef EINK_CLEARCOUNT
+#       define EINK_CLEARCOUNT 10
+#endif
+
+/* Number of passes to use when writing to the display */
+#ifndef EINK_WRITECOUNT
+#       define EINK_WRITECOUNT 4
+#endif
+
 
 /* added glue */
 #include <stdbool.h>
+#include "pico/stdlib.h"
 typedef bool color_t;
 typedef bool bool_t;
 typedef unsigned int coord_t;
+extern union screenbuffer{
+    uint32_t sb_words[GDISP_SCREEN_HEIGHT][GDISP_SCREEN_WIDTH/(EINK_PPB*4)]; // 800*600 screen with 4 pixels per byte and 4 byte per uint32_t makes 30000 elements
+    uint8_t sb_bytes[GDISP_SCREEN_HEIGHT][GDISP_SCREEN_WIDTH/EINK_PPB]; // for byte-acces to the same buffer
+    } displaydata;
 /*/glue*/
 
 void vscan_start();

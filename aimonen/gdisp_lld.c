@@ -21,48 +21,6 @@
 #define FALSE false
 /* */
 
-
-/* =================================
- *      configuration
- * ================================= */
-
-#ifndef GDISP_SCREEN_HEIGHT
-#       define GDISP_SCREEN_HEIGHT 600 // Y was 600, but -SC7 is 3:4 where -SC4 is 4:3
-#endif
-
-#ifndef GDISP_SCREEN_WIDTH
-#       define GDISP_SCREEN_WIDTH 800 //X was 800, but -SC7 is 3:4 where -SC4 is 4:3 // perhaps rotation is not done here?
-#endif
-
-/* Number of pixels per byte */
-#ifndef EINK_PPB
-#       define EINK_PPB 4
-#endif
-
-/* Delay for generating clock pulses.
- * Unit is approximate clock cycles of the CPU.
- * This should be atleast 50 ns. (on-SC4, possible minimum is 200 ns + on ED060SC7)
- */
-#ifndef EINK_CLOCKDELAY
-#       define EINK_CLOCKDELAY  60 
-#endif
-
-/* Do a "blinking" clear, i.e. clear to opposite polarity first.
- * This reduces the image persistence. */
-#ifndef EINK_BLINKCLEAR
-#       define EINK_BLINKCLEAR TRUE
-#endif
-
-/* Number of passes to use when clearing the display */
-#ifndef EINK_CLEARCOUNT
-#       define EINK_CLEARCOUNT 10
-#endif
-
-/* Number of passes to use when writing to the display */
-#ifndef EINK_WRITECOUNT
-#       define EINK_WRITECOUNT 4
-#endif
-
 /* ====================================
  *      Lower level driver functions
  * ==================================== */
@@ -70,10 +28,6 @@
 //#include "gdisp_lld_board.h"
 #include "gdisp_lld_board_RP2040.h"
 
-union screenbuffer{
-uint32_t sb_words[GDISP_SCREEN_HEIGHT][GDISP_SCREEN_WIDTH/(EINK_PPB*4)]; // 800*600 screen with 4 pixels per byte and 4 byte per uint32_t makes 30000 elements
-uint8_t sb_bytes[GDISP_SCREEN_HEIGHT][GDISP_SCREEN_WIDTH/EINK_PPB]; // for byte-acces to the same buffer
-} displaydata;
 
 /** Delay between signal changes, to give time for IO pins to change state. */
 // RP2040 runs at 125 or 133 MHz or so, and the -sc7 e-ink is slower then the -sc 4, requiring Tle_off of 200 ns min where sc-4 has 40 min.
@@ -331,6 +285,10 @@ void gdisp_lld_draw_pixel(coord_t x, coord_t y, color_t color)
     
     if (x < 0 || x >= GDISP_SCREEN_WIDTH || y < 0 || y >= GDISP_SCREEN_HEIGHT)
         return;
+
+    if(INVERT_X) x=(GDISP_SCREEN_WIDTH-x);
+    if(INVERT_Y) y=(GDISP_SCREEN_HEIGHT-y);
+
 
     bitpos = (6 - 2 * (x % (EINK_PPB)));
     byte = displaydata.sb_bytes[y][(x / (EINK_PPB))];

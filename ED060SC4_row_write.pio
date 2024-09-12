@@ -22,14 +22,14 @@ pull ifempty side 0b00; // It will wait here for data: Autopull is enabled, so t
 set pins 0b00110 side 0b00;//default alleen SPH en SPV 1, rest 0
 //vscan start: GMODE 1, vclk, SPV0, VCLK MAAR HOOG LATEN, SPV1, vlck
 set pins 0b00111 side 0b00;
-nop [1] side 0b01; // todo: maybe no extra wait because it takes 1 tick anyway? SO not [1] and [4] but [0] and [3]
-set x 20 [4] side 0b00;
+nop [0] side 0b01; // todo: maybe no extra wait because it takes 1 tick anyway? SO not [1] and [4] but [0] and [3]
+set x 20 [3] side 0b00;
 set pins 0b00101 side 0b00
-nop [1] side 0b01;
-set y 10 [4] side 0b00;
+nop [0] side 0b01;
+set y 10 [3] side 0b00;
 set pins 0b00111 side 0b01
-nop [1] side 0b01;
-nop [4] side 0b00;
+nop [0] side 0b01;
+nop [3] side 0b00;
 
 colloop: //collumn loop
 //hscan start
@@ -48,14 +48,14 @@ jmp y-- rowloop side 0b00;
 set pins 0b00111 side 0b00;
 set y 30 side 0b10;
 nop side 0b00; // todo: can this be eliminated since it is set 0 on next anyway?
-set pins 0b10111 side 0b00; // TODO: perhaps insert a bit of clock delay here
+set pins 0b10111 [1] side 0b00; // TODO: clock delay?
 set pins 0b00111 side 0b00;
 
 //vscan_write
 set pins 0b01111 [5] side 0b01; // set ckv and oe and wait 5 us
 waitabit:
-set pins 0b00111 [7] side 0b00; // clear ckv and oe and wait 200 us (maybe grayscale timing?)
-nop [5] side 0b00;
+set pins 0b00111 [6] side 0b00; // clear ckv and oe and wait 200 us (maybe grayscale timing?)
+nop [2] side 0b00;
 // delay is max 7, so make a loop. x is still 20 from last loop
 jmp x-- waitabit side 0b00;
 
@@ -87,7 +87,7 @@ static inline void rowwrite_program_init(PIO pio, uint sm, uint offset, uint dat
         pio_gpio_init(pio, control_base+i);
     }
     // Set the pin direction to output at the PIO
-    pio_sm_set_consecutive_pindirs(pio,sm,control_base,5,true);
+    pio_sm_set_consecutive_pindirs(pio, sm, control_base, 5, true);
 //  set pins for use with OUT
     sm_config_set_out_pins(&c, datapin_base, 8);
     // Set this pin's GPIO function (connect PIO to the pad)
@@ -102,9 +102,9 @@ static inline void rowwrite_program_init(PIO pio, uint sm, uint offset, uint dat
     pio_gpio_init(pio,clocks_base+1); 
     pio_sm_set_consecutive_pindirs(pio, sm, clocks_base, 2, true);//set output for the side-set pin
 
-    //float div = clock_get_hz(clk_sys) / 1000000; // 1 cycle should be 1 us, so run at 1 MHz
+    float div = clock_get_hz(clk_sys) / 1000000; // 1 cycle should be 1 us, so run at 1 MHz
     //float div = clock_get_hz(clk_sys) / 50000; // try 50 kHz instead too see if 1 MHz is too fast?
-    float div = clock_get_hz(clk_sys) / 100000;
+    //float div = clock_get_hz(clk_sys) / 100000;
 
     sm_config_set_clkdiv(&c,div);
 
