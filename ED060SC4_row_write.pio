@@ -23,10 +23,10 @@ pull ifempty side 0b00; // It will wait here for data: Autopull is enabled, so t
 //vscan start: GMODE 1, vclk, SPV0, VCLK MAAR HOOG LATEN, SPV1, vlck
 set pins 0b11100 side 0b00;
 nop [0] side 0b01; // todo: maybe no extra wait because it takes 1 tick anyway? SO not [1] and [4] but [0] and [3]
-set x 20 [3] side 0b00;
+set x 19 [3] side 0b00;
 set pins 0b10100 side 0b00
 nop [0] side 0b01;
-set y 10 [3] side 0b00;
+set y 9 [3] side 0b00;
 nop side 0b01; // CKV should go high a bit early here...
 set pins 0b11100 [1] side 0b01
 nop [3] side 0b00;
@@ -38,16 +38,15 @@ set pins 0b11000 side 0b00;
 rowloop: // 200 bytes per row (800 pixels)
 //hscan write (rowwrwrite)
 out pins 8 side 0b00;
-nop side 0b10; 
-jmp x-- rowloop side 0b00;
-set x 20 side 0b00
+jmp x-- rowloop side 0b10;
+set x 19 side 0b00
 jmp y-- rowloop side 0b00;
 // end rowloop
 
 //hscan stop
 set pins 0b11100 side 0b00;
-set y 30 side 0b10;
-nop side 0b00; // todo: can this be eliminated since it is set 0 on next anyway?
+nop side 0b10;
+nop side 0b00;
 set pins 0b11101 [1] side 0b00; // TODO: clock delay?
 set pins 0b11100 side 0b00;
 
@@ -55,13 +54,14 @@ set pins 0b11100 side 0b00;
 set pins 0b11110 [5] side 0b01; // set ckv and oe and wait 5 us
 waitabit:
 set pins 0b11100 [6] side 0b00; // clear ckv and oe and wait 200 us (maybe grayscale timing?)
-nop [2] side 0b00;
-// delay is max 7, so make a loop. x is still 20 from last loop
+nop [1] side 0b00;
+// delay is max 7, so make a loop. x is still 19 from last loop, so 20 iterations
 jmp x-- waitabit side 0b00;
 
 //end colloop
-;// for 600 rows: (30 times 20), or rather simpy untill data runs out because out of scratch registers...
-JMP !OSRE colloop side 0;
+set x 19 side 0b00; // re-set scratch registers for colloop
+set y 9 side 0b00;
+JMP !OSRE colloop side 0; // for 600 rows: (30 times 20), or rather simpy untill data runs out because out of scratch registers...
 
 //vscan_stop: gmode 0 and 5 vlclks
 set pins 0b01100 side 0b00;
