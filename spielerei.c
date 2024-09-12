@@ -60,10 +60,10 @@ int main()
     }
 
 
-    screenrefresh(); // schrijf naar display (note: it wrote a bit before due to lack of buffer, oh well)
+    //screenrefresh(); // schrijf naar display (note: it wrote a bit before due to lack of buffer, oh well)
 
-   EPD_power_off();
-   while(1);
+  // EPD_power_off();
+  // while(1);
 
     rowwrite_program_init(pio,sm_dmarw,offset_dmarw,14,10,2); // now let PIO snatch the pins
 
