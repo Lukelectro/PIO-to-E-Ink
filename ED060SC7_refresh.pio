@@ -52,7 +52,8 @@ jmp y-- rowloop side 0b00;
 //hscan stop
 set pins 0b11100 side 0b00;
 set x 25 side 0b10; // would be a nop side 0b10 for just the clock, but also sets X for next delay loop
-set pins 0b11101 [1] side 0b00; // TODO: clock delay?
+// nop side 0b00; // TODO: test if this is needed?
+set pins 0b11101 [1] side 0b00; // TODO: Test if a clock delay is needed or if that [1] can be removed?
 set pins 0b11100 side 0b00;
 
 //vscan_write
