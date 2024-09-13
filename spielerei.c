@@ -37,18 +37,19 @@ int main()
 
 // x is 800 pixels, y is 600 pixels, in total
     
-    for(uint y=200;y<400;y++){
-        for(uint x=200;x<400;x++){
+    for(uint y=100;y<500;y++){
+        for(uint x=100;x<200;x++){
         gdisp_lld_draw_pixel(x,y,0); // black block
     }
     }
-
+ /*
         for(uint x=220;x<320;x++){
         for(uint y=220;y<370;y++){
         gdisp_lld_draw_pixel(x,y,1); // white center block
     }
     }
  
+
     for(uint y=600;y>0;y--){
         uint x=y*800/600;
         gdisp_lld_draw_pixel(x,y,0); // black diagonal line
@@ -58,6 +59,7 @@ int main()
         uint x=y;
         gdisp_lld_draw_pixel(x,y,0); // black diagonal line
     }
+*/
 
 
     //screenrefresh(); // schrijf naar display (note: it wrote a bit before due to lack of buffer, oh well)
@@ -78,16 +80,23 @@ int main()
         false // true to start imeadeately, false to start later
     );
 
-    for(int grayframe=0;grayframe<3;grayframe++){
+    for(int grayframe=0;grayframe<4;grayframe++){
     if(!dma_channel_is_busy(dmach))
         {
             // once DMA is no longer busy, load new data and restart transfer           
             dma_channel_set_read_addr(dmach, &displaydata.sb_words[0][0], true); // re-set read adress and restart transfer
         }
-    while(dma_channel_is_busy(dmach)){}; // wait untill DMA is done before powering off
-    busy_wait_us(312); // test with a forced delay in between rewrites
+
+        for(uint y=100;y<500;y++){
+        for(uint x=100;x<300+grayframe*100;x++){
+        gdisp_lld_draw_pixel(x,y,0); // black block
     }
-    busy_wait_ms(500); // then wait a bit longer just for the bit in FIFO to be writen to the display. 
+    }
+
+    while(dma_channel_is_busy(dmach)){}; // wait untill DMA is done before powering off
+    busy_wait_us(350); // test with a forced delay in between rewrites
+    }
+    busy_wait_ms(5000); // then wait a bit longer just for the bit in FIFO to be writen to the display. 
     //(TODO: in practice CPU should be doing something usefull and/or the busy/done signal should be used to know when to powerdown the eink)
 
     EPD_power_off(); 

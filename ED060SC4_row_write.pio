@@ -19,7 +19,7 @@
 
 //vscan_stop: gmode 0 and 5 vlclks. Also done on first start of statemachine.
 set pins 0b01100 side 0b00;
-set x 3 side 0b00;
+set x 4 side 0b00;
 vclkloop:
 nop side 0b01;
 jmp x-- vclkloop side 0b00;
@@ -51,8 +51,8 @@ jmp y-- rowloop side 0b00;
 
 //hscan stop
 set pins 0b11100 side 0b00;
-set x 25 side 0b10; // would be a nop side 0b10 for just te clock, but also sets X for next delay loop
-set pins 0b11101 side 0b00; // TODO: clock delay?
+set x 25 side 0b10; // would be a nop side 0b10 for just the clock, but also sets X for next delay loop
+set pins 0b11101 [1] side 0b00; // TODO: clock delay?
 set pins 0b11100 side 0b00;
 
 //vscan_write

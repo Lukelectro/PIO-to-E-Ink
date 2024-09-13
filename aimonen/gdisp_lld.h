@@ -51,7 +51,7 @@
 /* added glue */
 #include <stdbool.h>
 #include "pico/stdlib.h"
-typedef bool color_t;
+typedef uint8_t color_t;
 typedef bool bool_t;
 typedef unsigned int coord_t;
 extern union screenbuffer{

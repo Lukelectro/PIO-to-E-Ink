@@ -293,14 +293,16 @@ void gdisp_lld_draw_pixel(coord_t x, coord_t y, color_t color)
     bitpos = (6 - 2 * (x % (EINK_PPB)));
     byte = displaydata.sb_bytes[y][(x / (EINK_PPB))];
     byte &= ~(PIXELMASK << bitpos);
-    if (color)
+    if (color==1) // black or 'make darker' when using grayscales
     {
         byte |= PIXEL_WHITE << bitpos;
     }
-    else
+    else if (color==0) // white, or 'make lighther' when using grayscales
     {
         byte |= PIXEL_BLACK << bitpos;   
     }
+    // if color has any other value, the pixel is left 00 as is, so 'No change'
+
     displaydata.sb_bytes[y][(x / (EINK_PPB))] = byte; 
 }
 
