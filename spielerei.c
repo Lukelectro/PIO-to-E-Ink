@@ -78,7 +78,7 @@ int main()
         false // true to start imeadeately, false to start later
     );
 
-    for(int grayframe=0;grayframe<4;grayframe++){
+    for(int grayframe=0;grayframe<40;grayframe++){
     if(!dma_channel_is_busy(dmach))
         {
             // once DMA is no longer busy, load new data and restart transfer           
