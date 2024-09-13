@@ -65,10 +65,10 @@ JMP !OSRE colloop side 0; // for 600 rows: (30 times 20), or rather simpy untill
 
 //vscan_stop: gmode 0 and 5 vlclks
 set pins 0b01100 side 0b00;
-set x 5 side 0b01;
+set x 4 side 0b00;
 vclkloop:
-nop side 0b00;
-jmp x-- vclkloop side 0b01;
+nop side 0b01;
+jmp x-- vclkloop side 0b00;
 
 .wrap
 
