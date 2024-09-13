@@ -16,8 +16,14 @@
 .side_set 2;
 
 .wrap_target 
-// row write
-set pins 0b01100 side 0b00;//default alleen SPH en SPV 1, rest 0
+
+//vscan_stop: gmode 0 and 5 vlclks. Also done on first start of statemachine.
+set pins 0b01100 side 0b00;
+set x 3 side 0b00;
+vclkloop:
+nop side 0b01;
+jmp x-- vclkloop side 0b00;
+
 pull ifempty side 0b00; // It will wait here for data: Autopull is enabled, so this is a nop UNLESS it has to wait for data, then it will stall. 
 
 //vscan start: GMODE 1, vclk, SPV0, VCLK MAAR HOOG LATEN, SPV1, vlck
@@ -45,30 +51,21 @@ jmp y-- rowloop side 0b00;
 
 //hscan stop
 set pins 0b11100 side 0b00;
-nop side 0b10;
-nop side 0b00;
-set pins 0b11101 [1] side 0b00; // TODO: clock delay?
+set x 25 side 0b10; // would be a nop side 0b10 for just te clock, but also sets X for next delay loop
+set pins 0b11101 side 0b00; // TODO: clock delay?
 set pins 0b11100 side 0b00;
 
 //vscan_write
-set pins 0b11110 [5] side 0b01; // set ckv and oe and wait 5 us
+set pins 0b11110 [4] side 0b01; // set ckv and oe and wait about 5 us (grayscale timing - make longer for darker write)
 waitabit:
-set pins 0b11100 [6] side 0b00; // clear ckv and oe and wait 200 us (maybe grayscale timing?)
-nop [1] side 0b00;
-// delay is max 7, so make a loop. x is still 19 from last loop, so 20 iterations
-jmp x-- waitabit side 0b00;
+set pins 0b11100 [7] side 0b00; // clear ckv and oe and wait about 200 us (maybe grayscale timing?)
+// delay is max 7, so make a loop. X is set previously
+jmp x-- waitabit side 0b00;  //TODO: if this is eliminated the low period delay is way to short - but it still writes to display nicely...
 
 //end colloop
-set x 19 side 0b00; // re-set scratch registers for colloop
+set x 19 side 0b00; // re-set scratch registers for rowloop
 set y 9 side 0b00;
-JMP !OSRE colloop side 0; // for 600 rows: (30 times 20), or rather simpy untill data runs out because out of scratch registers...
-
-//vscan_stop: gmode 0 and 5 vlclks
-set pins 0b01100 side 0b00;
-set x 4 side 0b00;
-vclkloop:
-nop side 0b01;
-jmp x-- vclkloop side 0b00;
+JMP !OSRE colloop side 0b00; // for 600 rows: (30 times 20), or rather simpy untill data runs out because out of scratch registers...
 
 .wrap
 
