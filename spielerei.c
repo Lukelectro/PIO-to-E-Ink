@@ -3,7 +3,7 @@
 #include "hardware/gpio.h"
 #include "hardware/dma.h"
 #include "pico/binary_info.h"
-#include "ED060SC4_row_write.pio.h"
+#include "ED060SC7_refresh.pio.h"
 #include "aimonen/gdisp_lld.h"
 
     union screenbuffer displaydata; // TODO: make it local to gdisp_lld.c and include all the DMA-related config there too...
@@ -17,7 +17,7 @@ int main()
     pio_sm_claim(pio0,0); // reserve PIO0, State machine 0 for the DMA transfer
 
     PIO pio = pio0;
-    uint offset_dmarw = pio_add_program(pio, &rowwrite_program);
+    uint offset_dmarw = pio_add_program(pio, &epd_refresh_program);
     uint sm_dmarw = pio_claim_unused_sm(pio, true);
 
     int dmach = dma_claim_unused_channel(true);
@@ -67,7 +67,7 @@ int main()
   // EPD_power_off();
   // while(1);
 
-    rowwrite_program_init(pio,sm_dmarw,offset_dmarw,14,10,2); // now let PIO snatch the pins
+    epd_refresh_program_init(pio,sm_dmarw,offset_dmarw,14,10,2); // now let PIO snatch the pins
 
 
 /* write the config and DO NOT YET start the transfer */

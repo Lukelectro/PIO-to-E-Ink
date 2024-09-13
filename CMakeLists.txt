@@ -20,7 +20,7 @@ spielerei.c
 ../aimonen/gdisp_lld.c
 )
 
-pico_generate_pio_header(spielerei ${CMAKE_CURRENT_LIST_DIR}/ED060SC4_row_write.pio)
+pico_generate_pio_header(spielerei ${CMAKE_CURRENT_LIST_DIR}/ED060SC7_refresh.pio)
 
 target_sources(spielerei PRIVATE spielerei.c ../aimonen/gdisp_lld.c)
 

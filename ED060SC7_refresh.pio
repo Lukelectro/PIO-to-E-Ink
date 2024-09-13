@@ -1,4 +1,4 @@
-.program rowwrite
+.program epd_refresh
 
 ; // Just row write is done by PIO, rest of the display driver is just software. Later, maybe more functinality could be moved to PIO, but row write is the slowest bit
 ; // also, by using PIO, DMA can be used to move data to the display so the CPU has more free time for other tasks
@@ -71,11 +71,11 @@ JMP !OSRE colloop side 0b00; // for 600 rows: (30 times 20), or rather simpy unt
 
 % c-sdk {
     #include "hardware/clocks.h"
-static inline void rowwrite_program_init(PIO pio, uint sm, uint offset, uint datapin_base, uint clocks_base , uint control_base) {
+static inline void epd_refresh_program_init(PIO pio, uint sm, uint offset, uint datapin_base, uint clocks_base , uint control_base) {
     // control_base: LE (Next OE, SPH, SPV)
     // data_base: first data pin
     // clocks_base: CL (next ckv)
-    pio_sm_config c = rowwrite_program_get_default_config(offset);
+    pio_sm_config c = epd_refresh_program_get_default_config(offset);
 
 //set pins for use with SET
     sm_config_set_set_pins(&c,control_base,5); 
