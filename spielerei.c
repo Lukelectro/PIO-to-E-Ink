@@ -37,7 +37,7 @@ int main()
 
 // x is 800 pixels, y is 600 pixels, in total
     
-    for(uint y=100;y<500;y++){
+    for(uint y=300;y<400;y++){
         for(uint x=100;x<200;x++){
         gdisp_lld_draw_pixel(x,y,0); // black block
     }
@@ -87,14 +87,17 @@ int main()
             dma_channel_set_read_addr(dmach, &displaydata.sb_words[0][0], true); // re-set read adress and restart transfer
         }
 
-        for(uint y=100;y<500;y++){
-        for(uint x=100;x<300+grayframe*100;x++){
-        gdisp_lld_draw_pixel(x,y,0); // black block
-    }
-    }
 
+        for(uint y=300;y<400;y++){
+        for(uint x=100;x<300+grayframe*100;x++){
+        gdisp_lld_draw_pixel(x,y,0); // expanding black block (resulting in various shades of gray)
+        }
+        }
+ 
     while(dma_channel_is_busy(dmach)){}; // wait untill DMA is done before powering off
     busy_wait_us(350); // test with a forced delay in between rewrites
+    //might it be a power supply issue?
+    //busy_wait_ms(500); // lets try a reeeal ssllllloowwwwww delay to see if it is the power suply
     }
     busy_wait_ms(5000); // then wait a bit longer just for the bit in FIFO to be writen to the display. 
     //(TODO: in practice CPU should be doing something usefull and/or the busy/done signal should be used to know when to powerdown the eink)
