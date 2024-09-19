@@ -1,7 +1,7 @@
 #ifndef FONTSH_ONCE
 #define FONTSH_ONCE
 
-#include "../src/DejaVuSans12.c" 
+#include "DejaVuSans12.c" 
 //#include "DejaVuSans12bw.c" 
 //#include "DejaVuSerif16.c" 
 //#include "DejaVuSerif32.c" 

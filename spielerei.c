@@ -7,8 +7,8 @@
 #include "ED060SC7_refresh.pio.h"
 #include "aimonen/gdisp_lld.h"
 
-#include "mcufont/include/fonts.h"
-#include "mcufont/include/mcufont.h"
+#include "mcufont/fonts.h"
+#include "mcufont/mcufont.h"
 
     union screenbuffer displaydata; // TODO: make it local to gdisp_lld.c and include all the DMA-related config there too...
 
