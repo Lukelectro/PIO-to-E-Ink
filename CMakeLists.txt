@@ -17,15 +17,30 @@ pico_sdk_init()
 
 add_executable(spielerei)
 
-target_sources(spielerei PUBLIC spielerei.c ../aimonen/gdisp_lld.c)
+target_sources(spielerei PUBLIC spielerei.c ../aimonen/gdisp_lld.c 
+../mcufont/mf_encoding.c 
+../mcufont/mf_font.c 
+../mcufont/mf_justify.c 
+../mcufont/mf_kerning.c 
+../mcufont/mf_rlefont.c 
+../mcufont/mf_bwfont.c 
+../mcufont/mf_scaledfont.c 
+../mcufont/mf_wordwrap.c
+../mcufont/DejaVuSans12.c 
+../mcufont/DejaVuSans12bw_bwfont.c 
+../mcufont/DejaVuSans12bw.c 
+../mcufont/DejaVuSerif16.c 
+../mcufont/DejaVuSerif32.c 
+../mcufont/fixed_5x8.c 
+../mcufont/fixed_7x14.c 
+../mcufont/fixed_10x20.c
+)
 
 pico_generate_pio_header(spielerei ${CMAKE_CURRENT_LIST_DIR}/ED060SC7_refresh.pio)
 
-target_include_directories(spielerei PUBLIC aimonen)
+target_include_directories(spielerei PUBLIC aimonen mcufont)
 
-add_subdirectory(mcufont)
-
-target_link_libraries(spielerei pico_stdlib hardware_pio hardware_dma mcufont)
+target_link_libraries(spielerei pico_stdlib hardware_pio hardware_dma)
 
 pico_enable_stdio_usb(spielerei 1)
 pico_enable_stdio_uart(spielerei 1)
