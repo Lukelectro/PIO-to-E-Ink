@@ -15,34 +15,17 @@ endif()
 # Initialize the SDK
 pico_sdk_init()
 
-add_executable(spielerei
-spielerei.c
-../aimonen/gdisp_lld.c
-../mcufont/decoder/mf_encoding.c
-../mcufont/decoder/mf_font.c
-../mcufont/decoder/mf_justify.c
-../mcufont/decoder/mf_kerning.c
-../mcufont/decoder/mf_rlefont.c
-../mcufont/decoder/mf_bwfont.c 
-../mcufont/decoder/mf_scaledfont.c
-../mcufont/decoder/mf_wordwrap.c
-)
+add_executable(spielerei)
+
+target_sources(spielerei PUBLIC spielerei.c ../aimonen/gdisp_lld.c)
 
 pico_generate_pio_header(spielerei ${CMAKE_CURRENT_LIST_DIR}/ED060SC7_refresh.pio)
 
-target_sources(spielerei PRIVATE spielerei.c ../aimonen/gdisp_lld.c ../mcufont/decoder/mf_encoding.c
-../mcufont/decoder/mf_font.c
-../mcufont/decoder/mf_justify.c
-../mcufont/decoder/mf_kerning.c
-../mcufont/decoder/mf_rlefont.c
-../mcufont/decoder/mf_bwfont.c 
-../mcufont/decoder/mf_scaledfont.c
-../mcufont/decoder/mf_wordwrap.c
-)
+target_include_directories(spielerei PUBLIC aimonen)
 
-target_include_directories(spielerei PRIVATE mcufont mcufont/decoder mcufont/fonts aimonen)
+add_subdirectory(mcufont)
 
-target_link_libraries(spielerei pico_stdlib hardware_pio hardware_dma)
+target_link_libraries(spielerei pico_stdlib hardware_pio hardware_dma mcufont)
 
 pico_enable_stdio_usb(spielerei 1)
 pico_enable_stdio_uart(spielerei 1)

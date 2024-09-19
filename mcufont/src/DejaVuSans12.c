@@ -1,5 +1,7 @@
 
-
+#pragma once //lets see if this helps agains the multiple definition error where both point here -- Nope, but leaving it in
+#ifndef DEJAVUSANS12_ONCE
+#define DEJAVUSANS12_ONCE
 /* Start of automatically generated font definition for DejaVuSans12. */
 
 #ifndef MF_RLEFONT_INTERNALS
@@ -420,3 +422,4 @@ static const struct mf_font_list_s mf_rlefont_DejaVuSans12_listentry = {
 
 /* End of automatically generated font definition for DejaVuSans12. */
 
+#endif
