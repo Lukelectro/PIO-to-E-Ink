@@ -61,12 +61,6 @@ int main()
         gdisp_lld_draw_pixel(x,y,0); // black block
     }
     }
- /*
-        for(uint x=220;x<320;x++){
-        for(uint y=220;y<370;y++){
-        gdisp_lld_draw_pixel(x,y,1); // white center block
-    }
-    }
  
 
     for(uint y=600;y>0;y--){
@@ -78,7 +72,7 @@ int main()
         uint x=y;
         gdisp_lld_draw_pixel(x,y,0); // black diagonal line
     }
-*/
+
 
 
     //screenrefresh(); // schrijf naar display (note: it wrote a bit before due to lack of buffer, oh well)

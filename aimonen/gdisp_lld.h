@@ -16,7 +16,7 @@
 #endif
 
 #define INVERT_X FALSE
-#define INVERT_Y TRUE
+#define INVERT_Y FALSE
 
 /* Number of pixels per byte */
 #ifndef EINK_PPB

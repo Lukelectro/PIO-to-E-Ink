@@ -1049,7 +1049,7 @@ static const struct mf_rlefont_char_range_s mf_rlefont_DejaVuSerif32_char_ranges
     {8208, 6, mf_rlefont_DejaVuSerif32_glyph_offsets_2, mf_rlefont_DejaVuSerif32_glyph_data_2},
 };
 
-const struct mf_rlefont_s mf_rlefont_DejaVuSerif32 = {
+static const struct mf_rlefont_s mf_rlefont_DejaVuSerif32 = { // multiple definition error, was originaly not static, error fixed by making it static
     {
     "DejaVu Serif Book 32",
     "DejaVuSerif32",

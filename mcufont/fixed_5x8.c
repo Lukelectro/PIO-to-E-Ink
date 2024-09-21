@@ -114,7 +114,7 @@ static const struct mf_bwfont_char_range_s mf_bwfont_fixed_5x8_char_ranges[] = {
     },
 };
 
-const struct mf_bwfont_s mf_bwfont_fixed_5x8 = {
+static const struct mf_bwfont_s mf_bwfont_fixed_5x8 = { // multiple definition error, was originaly not static, error fixed by making it static
     {
     "-Misc-Fixed-Medium-R-Normal--8-80-75-75-C-50-ISO8859-15",
     "fixed_5x8",

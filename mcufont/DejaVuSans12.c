@@ -1,7 +1,3 @@
-
-#pragma once //lets see if this helps agains the multiple definition error where both point here -- Nope, but leaving it in
-#ifndef DEJAVUSANS12_ONCE
-#define DEJAVUSANS12_ONCE
 /* Start of automatically generated font definition for DejaVuSans12. */
 
 #ifndef MF_RLEFONT_INTERNALS
@@ -384,7 +380,7 @@ static const struct mf_rlefont_char_range_s mf_rlefont_DejaVuSans12_char_ranges[
     {8208, 6, mf_rlefont_DejaVuSans12_glyph_offsets_2, mf_rlefont_DejaVuSans12_glyph_data_2},
 };
 
-const struct mf_rlefont_s mf_rlefont_DejaVuSans12 = {
+static const struct mf_rlefont_s mf_rlefont_DejaVuSans12 = { // multiple definition error, was originaly not static, error fixed by making it static
     {
     "DejaVu Sans Book 12",
     "DejaVuSans12",
@@ -421,5 +417,3 @@ static const struct mf_font_list_s mf_rlefont_DejaVuSans12_listentry = {
 
 
 /* End of automatically generated font definition for DejaVuSans12. */
-
-#endif

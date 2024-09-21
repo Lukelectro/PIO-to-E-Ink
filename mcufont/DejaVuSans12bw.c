@@ -216,7 +216,7 @@ static const struct mf_rlefont_char_range_s mf_rlefont_DejaVuSans12bw_char_range
     {8208, 6, mf_rlefont_DejaVuSans12bw_glyph_offsets_2, mf_rlefont_DejaVuSans12bw_glyph_data_2},
 };
 
-const struct mf_rlefont_s mf_rlefont_DejaVuSans12bw = {
+static const struct mf_rlefont_s mf_rlefont_DejaVuSans12bw = { // made static to prevent 'multiple defenition' error
     {
     "DejaVu Sans Book 12",
     "DejaVuSans12bw",

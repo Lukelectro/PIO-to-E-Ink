@@ -205,7 +205,7 @@ static const struct mf_rlefont_char_range_s mf_rlefont_fixed_7x14_char_ranges[] 
     {160, 96, mf_rlefont_fixed_7x14_glyph_offsets_1, mf_rlefont_fixed_7x14_glyph_data_1},
 };
 
-const struct mf_rlefont_s mf_rlefont_fixed_7x14 = {
+static const struct mf_rlefont_s mf_rlefont_fixed_7x14 = { // multiple definition error, was originaly not static, error fixed by making it static
     {
     "-Misc-Fixed-Medium-R-Normal--14-130-75-75-C-70-ISO8859-15",
     "fixed_7x14",

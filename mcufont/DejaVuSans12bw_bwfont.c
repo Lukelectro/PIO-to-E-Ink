@@ -298,7 +298,7 @@ static const struct mf_bwfont_char_range_s mf_bwfont_DejaVuSans12bw_bwfont_char_
     },
 };
 
-const struct mf_bwfont_s mf_bwfont_DejaVuSans12bw_bwfont = {
+static const struct mf_bwfont_s mf_bwfont_DejaVuSans12bw_bwfont = { // multiple definition error, was originaly not static, error fixed by making it static
     {
     "DejaVu Sans Book 12",
     "DejaVuSans12bw_bwfont",
