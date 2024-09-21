@@ -23,7 +23,7 @@ static void pixel_callback(int16_t x, int16_t y, uint8_t count, uint8_t alpha, v
 
 static uint8_t char_callback(int16_t x0, int16_t y0, mf_char character, void *state)
     {
-        return mf_render_character(&mf_rlefont_DejaVuSans12.font, x0, y0, character, &pixel_callback, state);
+        return mf_render_character(&mf_rlefont_DejaVuSerif16.font, x0, y0, character, &pixel_callback, state);
     }
 
 
@@ -61,34 +61,22 @@ int main()
         gdisp_lld_draw_pixel(x,y,0); // black block
     }
     }
- 
-
-    for(uint y=600;y>0;y--){
-        uint x=y*800/600;
-        gdisp_lld_draw_pixel(x,y,0); // black diagonal line
-    }
-
-        for(uint y=0;y<600;y++){
-        uint x=y;
-        gdisp_lld_draw_pixel(x,y,0); // black diagonal line
-    }
-
-
-
-    //screenrefresh(); // schrijf naar display (note: it wrote a bit before due to lack of buffer, oh well)
-
-  // EPD_power_off();
-  // while(1);
 
     epd_refresh_program_init(pio,sm_dmarw,offset_dmarw,14,10,2); // now let PIO snatch the pins
 
     mf_render_aligned(
-       &mf_rlefont_DejaVuSans12.font,
-       50, 50,
+       &mf_rlefont_DejaVuSerif16.font,
+       100, 280,
        MF_ALIGN_LEFT,
-       "e-ink.eluke.nl test with e-ink driver that does DMA to PIO", strlen("e-ink.eluke.nl test with e-ink driver that does DMA to PIO"),
+       "e-ink.eluke.nl -- Demo with e-ink driver that does DMA to PIO", 0,
        &char_callback, NULL);
 
+    mf_render_aligned(
+       &mf_rlefont_DejaVuSerif16.font,
+       100, 420,
+       MF_ALIGN_LEFT,
+       "And grayscale!", 0,
+       &char_callback, NULL);
 
 /* write the config and DO NOT YET start the transfer */
    dma_channel_configure(
