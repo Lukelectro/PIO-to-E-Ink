@@ -17,7 +17,10 @@ pico_sdk_init()
 
 add_executable(spielerei)
 
-target_sources(spielerei PUBLIC spielerei.c ../aimonen/gdisp_lld.c 
+target_sources(spielerei PUBLIC 
+spielerei.c 
+gdisp_hld.c
+../aimonen/gdisp_lld.c 
 ../mcufont/mf_encoding.c 
 ../mcufont/mf_font.c 
 ../mcufont/mf_justify.c 

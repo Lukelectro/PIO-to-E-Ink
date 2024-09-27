@@ -7,24 +7,9 @@
 #include "ED060SC7_refresh.pio.h"
 #include "aimonen/gdisp_lld.h"
 
-#include "mcufont/fonts.h"
-#include "mcufont/mcufont.h"
+#include "gdisp_hld.h"
 
-    union screenbuffer displaydata; // TODO: make it local to gdisp_lld.c and include all the DMA-related config there too...
-
-static void pixel_callback(int16_t x, int16_t y, uint8_t count, uint8_t alpha, void *state)
-    {
-    while (count--)
-        {
-            gdisp_lld_draw_pixel(x,y,0);/* your code goes here, ex: drawPixel(x, y, alpha, color::black); */
-            x++;
-        }
-    }
-
-static uint8_t char_callback(int16_t x0, int16_t y0, mf_char character, void *state)
-    {
-        return mf_render_character(&mf_rlefont_DejaVuSerif16.font, x0, y0, character, &pixel_callback, state);
-    }
+    union screenbuffer displaydata; // TODO: make it local to gdisp_lld.c or ...hld.c and include all the DMA-related config there too...
 
 
 int main()
@@ -49,11 +34,9 @@ int main()
     
     gdisp_lld_init();
     EPD_power_on();
-    //gdisp_lld_clear(0); // clear to black
-    gdisp_lld_clear(1); // clear to white
+    gdisp_lld_clear(1); // clear to white (1) or black (0)
 
 // add a bit of test data 
-
 // x is 800 pixels, y is 600 pixels, in total
     
     for(uint y=300;y<400;y++){
@@ -64,19 +47,9 @@ int main()
 
     epd_refresh_program_init(pio,sm_dmarw,offset_dmarw,14,10,2); // now let PIO snatch the pins
 
-    mf_render_aligned(
-       &mf_rlefont_DejaVuSerif16.font,
-       100, 280,
-       MF_ALIGN_LEFT,
-       "e-ink.eluke.nl -- Demo with e-ink driver that does DMA to PIO", 0,
-       &char_callback, NULL);
-
-    mf_render_aligned(
-       &mf_rlefont_DejaVuSerif16.font,
-       100, 420,
-       MF_ALIGN_LEFT,
-       "And grayscale!", 0,
-       &char_callback, NULL);
+    // put text in buffer:
+       text_to_eink(100, 250, "e-ink.eluke.nl -- Demo with e-ink driver that does DMA to PIO");
+       text_to_eink(400, 420, "And grayscale!");
 
 /* write the config and DO NOT YET start the transfer */
    dma_channel_configure(
@@ -89,7 +62,7 @@ int main()
     );
 
 
-   for (int grayframe = 0; grayframe < 4; grayframe++)
+   for (int grayframe = 0; grayframe < 3; grayframe++)
    {
        if (!dma_channel_is_busy(dmach))
        {
@@ -99,7 +72,7 @@ int main()
 
        for (uint y = 300; y < 400; y++)
        {
-           for (uint x = 100; x < 300 + grayframe * 100; x++)
+           for (uint x = 100; x < 300 + grayframe * 120; x++)
            {
                gdisp_lld_draw_pixel(x, y, 0); // expanding black block (resulting in various shades of gray)
            }
@@ -112,7 +85,7 @@ int main()
        // might it be a power supply issue?
        // busy_wait_ms(500); // lets try a reeeal ssllllloowwwwww delay to see if it is the power suply
     }
-    busy_wait_ms(5000); // then wait a bit longer just for the bit in FIFO to be writen to the display. 
+    busy_wait_ms(1000); // then wait a bit longer just for the bit in FIFO to be writen to the display. 
     //(TODO: in practice CPU should be doing something usefull and/or the busy/done signal should be used to know when to powerdown the eink)
 
     EPD_power_off(); 
