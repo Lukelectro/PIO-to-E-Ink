@@ -48,8 +48,11 @@ int main()
     epd_refresh_program_init(pio,sm_dmarw,offset_dmarw,14,10,2); // now let PIO snatch the pins
 
     // put text in buffer:
-       text_to_eink(100, 250, "e-ink.eluke.nl -- Demo with e-ink driver that does DMA to PIO");
-       text_to_eink(400, 420, "And grayscale!");
+       text_to_eink(100, 250, "e-ink.eluke.nl -- Demo with e-ink driver that does DMA to PIO",0);
+       text_to_eink(400, 420, "And grayscale!",0);
+       text_to_eink(250,550, "rotated", 1);
+       text_to_eink(300,150, "rotated even more!", 2);
+       text_to_eink(200,100, "Upside down", 3);
 
 /* write the config and DO NOT YET start the transfer */
    dma_channel_configure(
