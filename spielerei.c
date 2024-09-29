@@ -39,11 +39,13 @@ int main()
 // add a bit of test data 
 // x is 800 pixels, y is 600 pixels, in total
     
+    /*
     for(uint y=300;y<400;y++){
         for(uint x=100;x<200;x++){
         gdisp_lld_draw_pixel(x,y,0); // black block
     }
     }
+    */
 
     epd_refresh_program_init(pio,sm_dmarw,offset_dmarw,14,10,2); // now let PIO snatch the pins
 
@@ -65,7 +67,7 @@ int main()
     );
 
 
-   for (int grayframe = 0; grayframe < 3; grayframe++)
+   for (int grayframe = 0; grayframe < 5; grayframe++)
    {
        if (!dma_channel_is_busy(dmach))
        {
@@ -75,7 +77,7 @@ int main()
 
        for (uint y = 300; y < 400; y++)
        {
-           for (uint x = 100; x < 300 + grayframe * 120; x++)
+           for (uint x = 100; x < 200 + grayframe * 100; x++)
            {
                gdisp_lld_draw_pixel(x, y, 0); // expanding black block (resulting in various shades of gray)
            }
@@ -86,7 +88,7 @@ int main()
        };                 // wait untill DMA is done before powering off
        busy_wait_us(350); // test with a forced delay in between rewrites
        // might it be a power supply issue?
-       // busy_wait_ms(500); // lets try a reeeal ssllllloowwwwww delay to see if it is the power suply
+        busy_wait_ms(500); // lets try a reeeal ssllllloowwwwww delay to see if it is the power suply
     }
     busy_wait_ms(1000); // then wait a bit longer just for the bit in FIFO to be writen to the display. 
     //(TODO: in practice CPU should be doing something usefull and/or the busy/done signal should be used to know when to powerdown the eink)

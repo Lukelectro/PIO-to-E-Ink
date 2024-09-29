@@ -15,6 +15,7 @@
 //added:
 #include "gdisp_lld.h"
 #include <stdbool.h>
+#include <string.h> // for memset / buffer clearing
 
 /* glue because stdbool is lowercase here */
 #define TRUE true
@@ -341,7 +342,9 @@ static void subclear(color_t color)
 void gdisp_lld_clear(color_t color)
 {
     unsigned i;
-    //todo: maybe clear display buffer here?
+    uint8_t byte = color ? BYTE_WHITE : BYTE_BLACK;
+    memset(displaydata.sb_bytes, byte, GDISP_SCREEN_HEIGHT*GDISP_SCREEN_WIDTH/(EINK_PPB)); // clear display buffer here?
+   //TODO: note, when starting from white (0xaa) instead of "no change" (0x00, as without the memset above) grayscales turn out different! (Lighther)
     
     if (EINK_BLINKCLEAR)
     {
