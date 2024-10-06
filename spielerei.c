@@ -47,7 +47,7 @@ int main()
     }
     */
 
-    epd_refresh_program_init(pio,sm_dmarw,offset_dmarw,14,10,2); // now let PIO snatch the pins
+    epd_refresh_program_init(pio,sm_dmarw,offset_dmarw,9,7,2); // now let PIO snatch the pins
 
     // put text in buffer:
        text_to_eink(100, 250, "e-ink.eluke.nl -- Demo with e-ink driver that does DMA to PIO",0);

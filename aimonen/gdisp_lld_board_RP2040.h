@@ -20,25 +20,19 @@
 /*
  * IO pins assignments.
  */
-#define EINK_VDD      8 // always on or share pin with SMPS_CTRL
+#define EINK_VDD      19// always on or share pin with SMPS_CTRL
 #define EINK_GMODE    6
 #define EINK_SPV      5
-#define EINK_CKV      10
-#define EINK_CL       11
+#define EINK_CKV      7
+#define EINK_CL       8
 #define EINK_LE       2
 #define EINK_OE       3
 #define EINK_SPH      4
-#define EINK_D0       14 // must be consecutive with D0 on lowest bit
-#define EINK_D1       15
-#define EINK_D2       16
-#define EINK_D3       17
-#define EINK_D4       18
-#define EINK_D5       19
-#define EINK_D6       20
-#define EINK_D7       21
-#define SMPS_CTRL     8
-#define VPOS_CTRL     9
-#define VNEG_CTRL     7
+#define EINK_D0       9 // must be consecutive with D0 on lowest bit
+#define SMPS_CTRL     19
+#define VPOS_CTRL     18
+#define VNEG_CTRL     17
+//TODO: chargepump on 20 and 21?
 
 /* Set up IO pins for the panel connection. */
 static inline void init_board(void) {
