@@ -264,6 +264,22 @@ void screenrefresh()
  *         Public functions
  * =============================== */
 
+void clear_screenbuffer(color_t color){
+uint8_t byte;
+switch(color){
+    case 1:
+    byte = BYTE_WHITE;
+    break;
+    case 0:
+    byte = BYTE_BLACK;
+    break;
+    default:
+    byte = 0x00;
+    break;
+}
+memset(displaydata.sb_bytes, byte, GDISP_SCREEN_HEIGHT*GDISP_SCREEN_WIDTH/(EINK_PPB)); // clear display buffer here?
+}
+
 bool_t gdisp_lld_init(void)
 {
     init_board();
@@ -274,7 +290,7 @@ bool_t gdisp_lld_init(void)
      */
     EPD_power_off();
 
-    //TODO: iets dat de buffer wist (memcpy)?
+    clear_screenbuffer(3); //clear to "No Action"
     
     return TRUE;
 }
@@ -302,7 +318,7 @@ void gdisp_lld_draw_pixel(coord_t x, coord_t y, color_t color)
     {
         byte |= PIXEL_BLACK << bitpos;   
     }
-    // if color has any other value, the pixel is left 00 as is, so 'No change'
+    // if color has any other value, the pixel is left as is, so 'No change' when it is 00 or 11
 
     displaydata.sb_bytes[y][(x / (EINK_PPB))] = byte; 
 }
@@ -341,10 +357,9 @@ static void subclear(color_t color)
 
 void gdisp_lld_clear(color_t color)
 {
-    unsigned i;
-    uint8_t byte = color ? BYTE_WHITE : BYTE_BLACK;
-    memset(displaydata.sb_bytes, byte, GDISP_SCREEN_HEIGHT*GDISP_SCREEN_WIDTH/(EINK_PPB)); // clear display buffer here?
-   //TODO: note, when starting from white (0xaa) instead of "no change" (0x00, as without the memset above) grayscales turn out different! (Lighther)
+    unsigned i;    
+    clear_screenbuffer(1); // clear to white
+   //TODO: note, when starting from white (0xaa) instead of "no change" grayscales turn out different! (Lighther)
     
     if (EINK_BLINKCLEAR)
     {

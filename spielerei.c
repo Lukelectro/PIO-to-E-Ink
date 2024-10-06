@@ -56,6 +56,20 @@ int main()
        text_to_eink(300,150, "rotated even more!", 2);
        text_to_eink(200,100, "Upside down", 3);
 
+       text_to_eink(0,50, "Single pixel and double pixel lines below. Single pixel line not properly visible. That is a bug", 0);
+       for(uint i = 0; i<500; i++) {
+        gdisp_lld_draw_pixel(i, 70, 0); // lijntje dat hopelijk niet verdwijnt, nog steeds enkel
+
+        gdisp_lld_draw_pixel(i, 80, 0); // lijntje dat hopelijk niet verdwijnt, dubbel
+        gdisp_lld_draw_pixel(i, 81, 0); // 
+        
+        gdisp_lld_draw_pixel(780, i, 0); // lijntje dat hopelijk niet verdwijnt, nog steeds enkel
+
+        gdisp_lld_draw_pixel(790, i, 0); // lijntje dat hopelijk niet verdwijnt, dubbel
+        gdisp_lld_draw_pixel(791, i, 0); // 
+
+       }
+
 /* write the config and DO NOT YET start the transfer */
    dma_channel_configure(
         dmach, 
@@ -66,8 +80,25 @@ int main()
         false // true to start imeadeately, false to start later
     );
 
+// first write text, then later write the gray block. Both at onces gives less crisp text
+       for (int grayframe = 0; grayframe < 4; grayframe++)
+   {
+       if (!dma_channel_is_busy(dmach))
+       {
+           // once DMA is no longer busy, load new data and restart transfer
+           dma_channel_set_read_addr(dmach, &displaydata.sb_words[0][0], true); // re-set read adress and restart transfer
+       }
 
-   for (int grayframe = 0; grayframe < 5; grayframe++)
+       while (dma_channel_is_busy(dmach))
+       {
+       };                 // wait untill DMA is done before powering off
+       busy_wait_ms(5); // test with a forced delay in between rewrites
+       // might it be a power supply issue?
+    }
+
+    clear_buffer();
+
+   for (int grayframe = 0; grayframe < 4; grayframe++)
    {
        if (!dma_channel_is_busy(dmach))
        {
@@ -88,7 +119,6 @@ int main()
        };                 // wait untill DMA is done before powering off
        busy_wait_us(350); // test with a forced delay in between rewrites
        // might it be a power supply issue?
-        busy_wait_ms(500); // lets try a reeeal ssllllloowwwwww delay to see if it is the power suply
     }
     busy_wait_ms(1000); // then wait a bit longer just for the bit in FIFO to be writen to the display. 
     //(TODO: in practice CPU should be doing something usefull and/or the busy/done signal should be used to know when to powerdown the eink)

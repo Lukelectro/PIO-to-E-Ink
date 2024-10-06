@@ -4,6 +4,11 @@
 #include "mcufont/fonts.h"
 #include "mcufont/mcufont.h"
 
+void clear_buffer()
+{
+    clear_screenbuffer(3); // clear to 'No change'
+}
+
 static void pixel_callback(int16_t x, int16_t y, uint8_t count, uint8_t alpha, void *state)
     {
     while (count--)

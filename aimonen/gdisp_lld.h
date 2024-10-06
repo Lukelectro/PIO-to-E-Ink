@@ -72,6 +72,7 @@ void EPD_power_on();
 void EPD_power_off();
 
 void screenrefresh();
+void clear_screenbuffer(color_t color);
 
 /* ===============================
  *         Public functions

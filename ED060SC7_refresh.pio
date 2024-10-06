@@ -57,7 +57,7 @@ set pins 0b11101 [1] side 0b00; // TODO: Test if a clock delay is needed or if t
 set pins 0b11100 side 0b00;
 
 //vscan_write
-set pins 0b11110 [3] side 0b01; // set ckv and oe and wait about 5 us (grayscale timing - make longer for darker write)
+set pins 0b11110 [5] side 0b01; // set ckv and oe and wait about 5 us (grayscale timing - longer for darker write.)
 waitabit:
 set pins 0b11100 [6] side 0b00; // clear ckv and oe and wait about 200 us (maybe grayscale timing?)
 // delay is max 7, so make a loop. X is set previously (to 25). Set+[6]+jmp=8, 8*25=200 us
