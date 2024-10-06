@@ -34,7 +34,7 @@ int main()
     
     gdisp_lld_init();
     EPD_power_on();
-    gdisp_lld_clear(1); // clear to white (1) or black (0)
+    gdisp_lld_clear(0); // clear to white (1) or black (0)
 
 // add a bit of test data 
 // x is 800 pixels, y is 600 pixels, in total
@@ -56,7 +56,7 @@ int main()
        text_to_eink(300,150, "rotated even more!", 2);
        text_to_eink(200,100, "Upside down", 3);
 
-       text_to_eink(0,50, "Single pixel and double pixel lines below. Single pixel line not properly visible. That is a bug", 0);
+       text_to_eink(0,50, "Single pixel and double pixel lines below.", 0);
        for(uint i = 0; i<500; i++) {
         gdisp_lld_draw_pixel(i, 70, 0); // lijntje dat hopelijk niet verdwijnt, nog steeds enkel
 
@@ -92,13 +92,13 @@ int main()
        while (dma_channel_is_busy(dmach))
        {
        };                 // wait untill DMA is done before powering off
-       busy_wait_ms(5); // test with a forced delay in between rewrites
+       busy_wait_ms(1); // test with a forced delay in between rewrites
        // might it be a power supply issue?
     }
 
-    clear_buffer();
+    clear_screenbuffer(3); // clear to "no change" (not white)
 
-   for (int grayframe = 0; grayframe < 4; grayframe++)
+   for (int grayframe = 0; grayframe < 3; grayframe++)
    {
        if (!dma_channel_is_busy(dmach))
        {

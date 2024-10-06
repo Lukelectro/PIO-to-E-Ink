@@ -290,7 +290,7 @@ bool_t gdisp_lld_init(void)
      */
     EPD_power_off();
 
-    clear_screenbuffer(3); //clear to "No Action"
+    clear_screenbuffer(1); //clear to "white"
     
     return TRUE;
 }
