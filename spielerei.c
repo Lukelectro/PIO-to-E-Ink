@@ -34,18 +34,10 @@ int main()
     
     gdisp_lld_init();
     EPD_power_on();
-    gdisp_lld_clear(0); // clear to white (1) or black (0)
-
-// add a bit of test data 
-// x is 800 pixels, y is 600 pixels, in total
-    
-    /*
-    for(uint y=300;y<400;y++){
-        for(uint x=100;x<200;x++){
-        gdisp_lld_draw_pixel(x,y,0); // black block
-    }
-    }
-    */
+    gdisp_lld_clear(WHITE); 
+    //clear_screenbuffer(NOCHANGE11); // TODO: Hah! this matters! On a white background fine 1 pixel black lines disapear but on a 0b00 or 0b11 background they are sharp!
+    // so TODO: make a demo that demonstrates this with explanation in text on the display!
+    clear_screenbuffer(NOCHANGE00);
 
     epd_refresh_program_init(pio,sm_dmarw,offset_dmarw,9,7,2); // now let PIO snatch the pins
 
@@ -96,7 +88,8 @@ int main()
        // might it be a power supply issue?
     }
 
-    clear_screenbuffer(3); // clear to "no change" (not white)
+    clear_screenbuffer(3); // buffer default (background) to "no change" 0b00 (not white)
+    clear_screenbuffer(2); // buffer default (background) to "no change" 0b11 (not white)
 
    for (int grayframe = 0; grayframe < 3; grayframe++)
    {
@@ -120,9 +113,13 @@ int main()
        busy_wait_us(350); // test with a forced delay in between rewrites
        // might it be a power supply issue?
     }
-    busy_wait_ms(1000); // then wait a bit longer just for the bit in FIFO to be writen to the display. 
+    busy_wait_ms(500); // then wait a bit longer just for the bit in FIFO to be writen to the display. 
     //(TODO: in practice CPU should be doing something usefull and/or the busy/done signal should be used to know when to powerdown the eink)
 
-    EPD_power_off(); 
-
+    EPD_power_off(); // TODO: since PIO has the pins, this now doesn't set the pins before removing power...
+    // So force the PIO to set all pins it controls to low: (TODO! THis needs work as it won't work with a stalled PIO but with a running PIO it will change the pins during its run...)
+    pio_sm_put(pio,sm_dmarw,0); // write 0 to un-stall PIO waiting for data TODO: maybe stop the PIO from running instead and then force the pins after? Set them back to SIO function?
+    pio_sm_exec_wait_blocking(pio,sm_dmarw,pio_encode_out(pio_pins,0x00));
+    pio_sm_exec_wait_blocking(pio,sm_dmarw,pio_encode_sideset(pio_pins,0x00));
+    pio_sm_exec_wait_blocking(pio,sm_dmarw,pio_encode_set(pio_pins,0x00));
 }

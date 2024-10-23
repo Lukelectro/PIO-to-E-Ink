@@ -96,7 +96,7 @@ void vscan_write()
 void vscan_bulkwrite()
 {
     setpin_ckv(TRUE);
-    eink_delay(20);
+    eink_delay(5); // original was 20, but 5 works fine with my display (tried lowering it from the original 20 to 5 to fix another issue on which it had no influence) 
     setpin_ckv(FALSE);
     eink_delay(200);
 }
@@ -267,14 +267,20 @@ void screenrefresh()
 void clear_screenbuffer(color_t color){
 uint8_t byte;
 switch(color){
-    case 1:
+    case NOCHANGE00:
+    byte=0x00; // No change type 0b00 TODO: if there is no difference between both options for no change, maybe just pick one?
+    break;
+    case NOCHANGE11:
+    byte = 0xFF; // No change, type 0b11
+    break;
+    case WHITE:
     byte = BYTE_WHITE;
     break;
-    case 0:
+    case BLACK:
     byte = BYTE_BLACK;
     break;
     default:
-    byte = 0x00;
+    byte = 0x00; // no change, type 0b00
     break;
 }
 memset(displaydata.sb_bytes, byte, GDISP_SCREEN_HEIGHT*GDISP_SCREEN_WIDTH/(EINK_PPB)); // clear display buffer here?
@@ -290,7 +296,7 @@ bool_t gdisp_lld_init(void)
      */
     EPD_power_off();
 
-    clear_screenbuffer(1); //clear to "white"
+    clear_screenbuffer(NOCHANGE00); 
     
     return TRUE;
 }
@@ -310,11 +316,11 @@ void gdisp_lld_draw_pixel(coord_t x, coord_t y, color_t color)
     bitpos = (6 - 2 * (x % (EINK_PPB)));
     byte = displaydata.sb_bytes[y][(x / (EINK_PPB))];
     byte &= ~(PIXELMASK << bitpos);
-    if (color==1) // black or 'make darker' when using grayscales
+    if (color==WHITE) // white, or 'make lighther' when using grayscales
     {
         byte |= PIXEL_WHITE << bitpos;
     }
-    else if (color==0) // white, or 'make lighther' when using grayscales
+    else if (color==BLACK) // black or 'make darker' when using grayscales
     {
         byte |= PIXEL_BLACK << bitpos;   
     }

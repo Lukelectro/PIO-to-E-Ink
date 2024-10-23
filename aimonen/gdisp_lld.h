@@ -39,7 +39,7 @@
 
 /* Number of passes to use when clearing the display */
 #ifndef EINK_CLEARCOUNT
-#       define EINK_CLEARCOUNT 10
+#       define EINK_CLEARCOUNT 10 // todo: maybe this can be less?
 #endif
 
 /* Number of passes to use when writing to the display */
@@ -51,7 +51,7 @@
 /* added glue */
 #include <stdbool.h>
 #include "pico/stdlib.h"
-typedef uint8_t color_t;
+typedef enum{BLACK,WHITE,NOCHANGE11,NOCHANGE00} color_t;
 typedef bool bool_t;
 typedef unsigned int coord_t;
 extern union screenbuffer{

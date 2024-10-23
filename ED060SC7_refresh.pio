@@ -7,7 +7,7 @@
 ; // the 3 pin groups are used as folows:
 ; // out pin group for data
 ; // sideset pins for clock CKV and CL (in that order, so CKV is clock_basepin and CL clock_basepin+1. So when sidesetting them, LSB is CKV, MSB is CL)
-; // set pin group for LE OE SPH SPV GMODE1 (in that order, so LE is control_basepin and OE control_basepin+! etc. so LE is MSB, GMODE MSB.) 
+; // set pin group for LE OE SPH SPV GMODE1 (in that order, so LE is control_basepin and OE control_basepin+1 etc. so LE is LSB, GMODE MSB.) 
 
 ; // autopull is used for data
 
