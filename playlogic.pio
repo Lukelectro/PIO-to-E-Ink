@@ -1,0 +1,52 @@
+.program playlogic
+;
+; // some sort of waveform generator // logic 'stimulator' / waveform player / pattern generator etc.
+;
+; // this can play waveforms stored in the format "[bits] [delay] [bits] [delay] repeat as long as needed" where both bits and delay are 32 bits
+; // these waveforms can then be autopulled
+; // it could be a simple way to control basicly any external hardware that needs IO toggling, without wasting a lot of pio instructions on the waveforms for it, as these
+; // waveforms can then be stored in an array that gets send to the PIO, potentially even by DMA (Not nescesairy, especially if pattern size is under FIFO size).
+
+.wrap_target
+out pins 32
+out x 32
+waitlbl: 
+jmp x-- waitlbl
+.wrap
+
+% c-sdk {
+#include "hardware/clocks.h"
+static inline void playlogic_program_init(PIO pio, uint sm, uint offset, uint pinbase, uint clockspeed)
+{
+    pio_sm_config c = playlogic_program_get_default_config(offset);
+    //  set ALL pins for use with OUT
+    sm_config_set_out_pins(&c, pinbase, 32);
+    // Set this pin's GPIO function (connect PIO to the pad)
+    for (uint i = 0; i < 32; i++)
+    {
+        pio_gpio_init(pio, pinbase + i);
+    }
+    // Set the pin direction to output at the PIO
+    pio_sm_set_consecutive_pindirs(pio, sm, pinbase, 32, true);
+    float div = clock_get_hz(clk_sys) / clockspeed; // set clockspeed
+    sm_config_set_clkdiv(&c, div);
+    // join both 4-level fifo's into one output fifo (8 levels), as there is no input to CPU from this statemachine
+    sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_TX);
+    sm_config_set_out_shift(&c, true, true, 32); // autopull when 32 bits have been shifted out, right
+    // Load our configuration, and jump to the start of the program
+    pio_sm_init(pio, sm, offset, &c);
+    // Set the state machine running
+    pio_sm_set_enabled(pio, sm, true);
+}
+
+static inline void playlogic_blinkaled(PIO pio, uint sm)
+{
+#define DATALENGTH 8
+    uint data[DATALENGTH] = {0x11111111, 200, 0x22222222, 200, 0x44444444, 0x200, 0x88888888, 300}; // blink LED's on all pins alternating, with 200 and 300 cycles of delay
+    for (uint i = 0; i < DATALENGTH; i++)
+    {
+        pio_sm_put(pio, sm, data[i]);
+    }
+}
+
+%}
