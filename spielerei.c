@@ -41,14 +41,18 @@ int main()
 
     epd_refresh_program_init(pio,sm_dmarw,offset_dmarw,9,7,2); // now let PIO snatch the pins
 
+        //set font:
+    //   eink_set_font("DejaVuSerif32");
     // put text in buffer:
-       text_to_eink(100, 250, "e-ink.eluke.nl -- Demo with e-ink driver that does DMA to PIO",0);
-       text_to_eink(400, 420, "And grayscale!",0);
-       text_to_eink(250,550, "rotated", 1);
-       text_to_eink(300,150, "rotated even more!", 2);
-       text_to_eink(200,100, "Upside down", 3);
-
-       text_to_eink(0,50, "Single pixel and double pixel lines below.", 0);
+       text_to_eink(100, 250, "e-ink.eluke.nl -- Demo with e-ink driver that does DMA to PIO",ROT_0);
+       text_to_eink(400, 420, "And grayscale!",ROT_0);
+       text_to_eink(250,550, "rotated 90 degrees", ROT_90);
+       eink_set_font("DejaVuSerif32");
+       text_to_eink(300,150, "rotated even more! (270)", ROT_270);
+       eink_set_font("DoesNotExist");
+       text_to_eink(200,100, "Upside down (180)", ROT_180);
+       eink_set_font("fixed_7x14"); 
+       text_to_eink(0,50, "Single pixel and double pixel lines below.", ROT_0);
        for(uint i = 0; i<500; i++) {
         gdisp_lld_draw_pixel(i, 70, 0); // lijntje dat hopelijk niet verdwijnt, nog steeds enkel
 
