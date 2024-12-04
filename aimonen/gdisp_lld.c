@@ -305,13 +305,11 @@ void gdisp_lld_draw_pixel(coord_t x, coord_t y, color_t color)
 { // todo: perhaps test this with a diagonal line or something, but it needs testing and might contain bugs
     uint32_t word;
     uint8_t bitpos, byte;
-    
-    if (x < 0 || x >= GDISP_SCREEN_WIDTH || y < 0 || y >= GDISP_SCREEN_HEIGHT)
-        return;
 
     if(INVERT_X) x=(GDISP_SCREEN_WIDTH-x);
     if(INVERT_Y) y=(GDISP_SCREEN_HEIGHT-y);
 
+    if (x < 0 || x >= GDISP_SCREEN_WIDTH || y < 0 || y >= GDISP_SCREEN_HEIGHT) return;
 
     bitpos = (6 - 2 * (x % (EINK_PPB)));
     byte = displaydata.sb_bytes[y][(x / (EINK_PPB))];

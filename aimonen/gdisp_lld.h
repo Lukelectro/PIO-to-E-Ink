@@ -53,7 +53,7 @@
 #include "pico/stdlib.h"
 typedef enum{BLACK,WHITE,NOCHANGE11,NOCHANGE00} color_t;
 typedef bool bool_t;
-typedef unsigned int coord_t;
+typedef int coord_t;
 extern union screenbuffer{
     uint32_t sb_words[GDISP_SCREEN_HEIGHT][GDISP_SCREEN_WIDTH/(EINK_PPB*4)]; // 800*600 screen with 4 pixels per byte and 4 byte per uint32_t makes 30000 elements
     uint8_t sb_bytes[GDISP_SCREEN_HEIGHT][GDISP_SCREEN_WIDTH/EINK_PPB]; // for byte-acces to the same buffer
