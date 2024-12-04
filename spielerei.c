@@ -42,14 +42,17 @@ int main()
     epd_refresh_program_init(pio,sm_dmarw,offset_dmarw,9,7,2); // now let PIO snatch the pins
 
         //set font:
-    //   eink_set_font("DejaVuSerif32");
+     //  eink_set_font("DejaVuSerif16");
     // put text in buffer:
-       text_to_eink(100, 250, "e-ink.eluke.nl -- Demo with e-ink driver that does DMA to PIO",ROT_0);
-       text_to_eink(400, 420, "And grayscale!",ROT_0);
-       text_to_eink(250,550, "rotated 90 degrees", ROT_90);
+       //text_to_eink(100, 250, "e-ink.eluke.nl -- Demo with e-ink driver that does DMA to PIO",ROT_0);
+       //text_to_eink(400, 420, "And grayscale!",ROT_0);
+       //text_to_eink(250,550, "rotated 90 degrees", ROT_90);
        eink_set_font("DejaVuSerif32");
-       text_to_eink(300,150, "rotated even more! (270)", ROT_270);
-       eink_set_font("DoesNotExist");
+       text_to_eink(30,10, "test tekst TEST TEXT 0 rotation", ROT_0);
+       text_to_eink(10,50, "Test tekst TEST TEXT 90 rotation", ROT_90); // TODO: large rotated text misses parst/pixels - rotation somehow goes wrong, possibly a rounding error or overflow or saturation thing.
+       text_to_eink(10,30, "Test tekst TEST TEXT 180 rotation", ROT_180);
+       text_to_eink(10,10, "rotated text misses pixels?", ROT_270);
+       /*
        text_to_eink(200,100, "Upside down (180)", ROT_180);
        eink_set_font("fixed_7x14"); 
        text_to_eink(0,50, "Single pixel and double pixel lines below.", ROT_0);
@@ -63,8 +66,9 @@ int main()
 
         gdisp_lld_draw_pixel(790, i, 0); // lijntje dat hopelijk niet verdwijnt, dubbel
         gdisp_lld_draw_pixel(791, i, 0); // 
-
+        
        }
+       */
 
 /* write the config and DO NOT YET start the transfer */
    dma_channel_configure(
@@ -92,9 +96,9 @@ int main()
        // might it be a power supply issue?
     }
 
-    clear_screenbuffer(3); // buffer default (background) to "no change" 0b00 (not white)
-    clear_screenbuffer(2); // buffer default (background) to "no change" 0b11 (not white)
-
+    //clear_screenbuffer(3); // buffer default (background) to "no change" 0b00 (not white)
+    //clear_screenbuffer(2); // buffer default (background) to "no change" 0b11 (not white)
+/*
    for (int grayframe = 0; grayframe < 3; grayframe++)
    {
        if (!dma_channel_is_busy(dmach))
@@ -117,6 +121,7 @@ int main()
        busy_wait_us(350); // test with a forced delay in between rewrites
        // might it be a power supply issue?
     }
+    */
     busy_wait_ms(500); // then wait a bit longer just for the bit in FIFO to be writen to the display. 
     //(TODO: in practice CPU should be doing something usefull and/or the busy/done signal should be used to know when to powerdown the eink)
 

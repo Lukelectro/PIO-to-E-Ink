@@ -181,11 +181,11 @@ void EPD_power_on()
     setpin_spv(TRUE);
     
     /* Min. 100 microsecond delay after digital supply */
-    sleep_ms(100); // TODO: eliminate busy waits
+    sleep_us(100); // TODO: eliminate busy waits
     
     /* Then negative voltages and min. 1000 microsecond delay. */
     setpower_vneg(TRUE);
-    sleep_ms(1000); // TODO: eliminate busy waits
+    sleep_us(1000); // TODO: eliminate busy waits. also TODO: ms or us?
     
     /* Finally the positive voltages. */
     setpower_vpos(TRUE);
