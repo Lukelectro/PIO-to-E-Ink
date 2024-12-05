@@ -30,18 +30,21 @@ static void pixel_callback(int16_t x, int16_t y, uint8_t count, uint8_t alpha, v
                 while (count--)
                 {
                     gdisp_lld_draw_pixel(y, GDISP_SCREEN_HEIGHT-x ,0);
+                    x++;
                 }
             break;
             case ROT_180:
                 while (count--)
                 {
                     gdisp_lld_draw_pixel(GDISP_SCREEN_WIDTH-x, GDISP_SCREEN_HEIGHT-y ,0);
+                    x++;
                 }
             break;
             case ROT_270:
                while (count--)
                 {
                     gdisp_lld_draw_pixel(GDISP_SCREEN_WIDTH-y, x ,0);
+                    x++;
                 }
             break;
         }

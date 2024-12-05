@@ -51,7 +51,8 @@ int main()
        text_to_eink(30,10, "test tekst TEST TEXT 0 rotation", ROT_0);
        text_to_eink(10,50, "Test tekst TEST TEXT 90 rotation", ROT_90); // TODO: large rotated text misses parst/pixels - rotation somehow goes wrong, possibly a rounding error or overflow or saturation thing.
        text_to_eink(10,30, "Test tekst TEST TEXT 180 rotation", ROT_180);
-       text_to_eink(10,10, "rotated text misses pixels?", ROT_270);
+       text_to_eink(10,10, "TEST TEXT 270", ROT_270);
+
        /*
        text_to_eink(200,100, "Upside down (180)", ROT_180);
        eink_set_font("fixed_7x14"); 
