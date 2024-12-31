@@ -143,8 +143,6 @@ void hscan_write(const uint8_t *data, int count)
     {
         /* Set the next byte on the data pins */
         setpins_data(*data++);
-        //setpins_data(0x5A); // for test, TODO fix
-
         /* Give a clock pulse to the shift register */
         hclock();
     }
@@ -185,7 +183,7 @@ void EPD_power_on()
     
     /* Then negative voltages and min. 1000 microsecond delay. */
     setpower_vneg(TRUE);
-    sleep_us(1000); // TODO: eliminate busy waits. also TODO: ms or us?
+    sleep_us(1000); // TODO: eliminate busy waits.
     
     /* Finally the positive voltages. */
     setpower_vpos(TRUE);
@@ -302,18 +300,14 @@ bool_t gdisp_lld_init(void)
 }
 
 void gdisp_lld_draw_pixel(coord_t x, coord_t y, color_t color)
-{ // todo: perhaps test this with a diagonal line or something, but it needs testing and might contain bugs
+{
     uint8_t bitpos, byte;
 
     if(INVERT_X) x=(GDISP_SCREEN_WIDTH-x);
     if(INVERT_Y) y=(GDISP_SCREEN_HEIGHT-y);
 
     if ((x < 0) || (x >= GDISP_SCREEN_WIDTH) || (y < 0) || (y >= GDISP_SCREEN_HEIGHT)) {
-        x=0;
-        y=0;
-        // This will draw a single pixel in that corner, but also provide a breakpoint adress, which is more usefull
-        // TODO: ensure pixels stay within screen bounds -- somehow still can't put a breakpoint here. Also displaydata[0][0] stays 0 so is not written by this.
-        //return;
+        return;
     }
 
     bitpos = (6 - 2 * (x % (EINK_PPB)));
@@ -331,8 +325,6 @@ void gdisp_lld_draw_pixel(coord_t x, coord_t y, color_t color)
 
     displaydata.sb_bytes[y][(x / (EINK_PPB))] = byte; 
 }
-
-//todo: something that clears the buffer and/or something that erases bits?
 
 
 /* ===============================
