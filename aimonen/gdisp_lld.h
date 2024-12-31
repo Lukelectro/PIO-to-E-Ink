@@ -39,7 +39,7 @@
 
 /* Number of passes to use when clearing the display */
 #ifndef EINK_CLEARCOUNT
-#       define EINK_CLEARCOUNT 5 // todo: was 10, maybe it can be less?
+#       define EINK_CLEARCOUNT 5
 #endif
 
 /* Number of passes to use when writing to the display */

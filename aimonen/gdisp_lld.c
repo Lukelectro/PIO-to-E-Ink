@@ -179,11 +179,11 @@ void EPD_power_on()
     setpin_spv(TRUE);
     
     /* Min. 100 microsecond delay after digital supply */
-    sleep_us(100); // TODO: eliminate busy waits
+    sleep_us(100); 
     
     /* Then negative voltages and min. 1000 microsecond delay. */
     setpower_vneg(TRUE);
-    sleep_us(1000); // TODO: eliminate busy waits.
+    sleep_us(1000); 
     
     /* Finally the positive voltages. */
     setpower_vpos(TRUE);
@@ -203,7 +203,7 @@ void EPD_power_off()
     setpower_vneg(FALSE);
     
     /* Wait for any capacitors to drain */
-    sleep_ms(100); // TODO: eliminate busy waits
+    sleep_ms(100); 
     
     /* Then put all signals and digital supply to ground. */
     setpin_le(FALSE);
@@ -365,13 +365,13 @@ void gdisp_lld_clear(color_t color)
     if (EINK_BLINKCLEAR)
     {
         subclear(!color);
-       sleep_ms(50); // TODO: eliminate busy waits
+       sleep_ms(50);
     }
     
     for (i = 0; i < EINK_CLEARCOUNT; i++)
     {
         subclear(color);
-        sleep_ms(10); // TODO: eliminate busy waits
+        sleep_ms(10); 
     }
     
 }
