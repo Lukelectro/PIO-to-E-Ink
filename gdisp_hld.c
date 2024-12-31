@@ -10,7 +10,7 @@ const struct mf_font_s *used_font = &mf_rlefont_DejaVuSerif16.font; //default fo
 
 void clear_buffer()
 {
-    clear_screenbuffer(WHITE);
+    clear_screenbuffer(NOCHANGE00);
 }
 
 static void pixel_callback(int16_t x, int16_t y, uint8_t count, uint8_t alpha, void *state)
@@ -22,28 +22,28 @@ static void pixel_callback(int16_t x, int16_t y, uint8_t count, uint8_t alpha, v
             case ROT_0:
                 while (count--)
                 {
-                    gdisp_lld_draw_pixel(x,y,0);
+                    gdisp_lld_draw_pixel(x,y,BLACK);
                     x++;
                 }
             break;
             case ROT_90:
                 while (count--)
                 {
-                    gdisp_lld_draw_pixel(y, GDISP_SCREEN_HEIGHT-x ,0);
+                    gdisp_lld_draw_pixel(y, GDISP_SCREEN_HEIGHT-x ,BLACK);
                     x++;
                 }
             break;
             case ROT_180:
                 while (count--)
                 {
-                    gdisp_lld_draw_pixel(GDISP_SCREEN_WIDTH-x, GDISP_SCREEN_HEIGHT-y ,0);
+                    gdisp_lld_draw_pixel(GDISP_SCREEN_WIDTH-x, GDISP_SCREEN_HEIGHT-y ,BLACK);
                     x++;
                 }
             break;
             case ROT_270:
                while (count--)
                 {
-                    gdisp_lld_draw_pixel(GDISP_SCREEN_WIDTH-y, x ,0);
+                    gdisp_lld_draw_pixel(GDISP_SCREEN_WIDTH-y, x ,BLACK);
                     x++;
                 }
             break;
