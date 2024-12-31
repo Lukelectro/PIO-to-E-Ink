@@ -361,7 +361,7 @@ void gdisp_lld_clear(color_t color)
 {
     unsigned i;    
     clear_screenbuffer(1); // clear to white
-   //TODO: note, when starting from white (0xaa) instead of "no change" grayscales turn out different! (Lighther)
+   // note: when starting from white (0xaa) instead of "no change" grayscales turn out different! (Lighther)
     
     if (EINK_BLINKCLEAR)
     {
