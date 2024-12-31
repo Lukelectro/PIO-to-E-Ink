@@ -238,7 +238,7 @@ void screenrefresh()
 {
     unsigned y, i;
     
-    for (i = 0; i < EINK_WRITECOUNT; i++) // TODO: for gray, lower writecount? test that!
+    for (i = 0; i < EINK_WRITECOUNT; i++) 
     {
         vscan_start();
         
@@ -265,8 +265,9 @@ void screenrefresh()
 void clear_screenbuffer(color_t color){
 uint8_t byte;
 switch(color){
+    case NOCHANGE: // there is 2 ways to signal "no change" but they seem similair enough to just pick one.
     case NOCHANGE00:
-    byte=0x00; // No change type 0b00 TODO: if there is no difference between both options for no change, maybe just pick one?
+    byte=0x00; 
     break;
     case NOCHANGE11:
     byte = 0xFF; // No change, type 0b11

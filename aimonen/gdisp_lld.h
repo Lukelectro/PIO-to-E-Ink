@@ -51,7 +51,7 @@
 /* added glue */
 #include <stdbool.h>
 #include "pico/stdlib.h"
-typedef enum{BLACK,WHITE,NOCHANGE11,NOCHANGE00} color_t;
+typedef enum{BLACK,WHITE,NOCHANGE11,NOCHANGE00, NOCHANGE} color_t;
 typedef bool bool_t;
 typedef int coord_t;
 extern union screenbuffer{
