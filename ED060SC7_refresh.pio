@@ -47,7 +47,7 @@ set x 19 side 0b00
 jmp y-- rowloop side 0b00;
 // end rowloop
 
-//hscan stop
+//hscan stop: SPH1, pulse cl, pulse LE.
 set pins 0b11100 side 0b00;
 set x 25 side 0b10; // would be a nop side 0b10 for just the clock, but also sets X for next delay loop
 set pins 0b11101 side 0b00;
@@ -58,9 +58,12 @@ set pins 0b11110 [4] side 0b01; // set ckv and oe and wait about 5 us (grayscale
 waitabit:
 set pins 0b11100 [6] side 0b00; // clear ckv and oe and wait about 200 us (maybe grayscale timing?)
 // delay is max 7, so make a loop. X is set previously (to 25). Set+[6]+jmp=8, 8*25=200 us
-jmp x-- waitabit side 0b00;  //TODO: this todo is left in because of this NOTE: if this wait time is eliminated the low period delay is about 10 us instead of 210
-// but it still writes to display nicely... A bit faster, obviously.
-// To test that, comment the "jmp x--"" line. I left this delay in, just in case. If 
+
+jmp x-- waitabit side 0b00;  
+/* TODO: this todo is left in because of this NOTE: if this wait time is eliminated the low period delay is about 10 us instead of 210
+// but it still writes to my EDSC060SC7 display nicely... A bit faster, obviously.
+// I left the delay in, just in case another display needs it or it changes subtle things, but feel free to experiment with commenting or removing the jmp x-- line.
+*/
 
 //end colloop
 set x 19 side 0b00; // re-set scratch registers for rowloop
