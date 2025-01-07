@@ -8,10 +8,6 @@
 
 const struct mf_font_s *used_font = &mf_rlefont_DejaVuSerif16.font; //default font, can be changed
 
-void clear_buffer()
-{
-    clear_screenbuffer(NOCHANGE00);
-}
 
 static void pixel_callback(int16_t x, int16_t y, uint8_t count, uint8_t alpha, void *state)
     {

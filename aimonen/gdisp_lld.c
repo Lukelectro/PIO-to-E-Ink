@@ -20,6 +20,7 @@
 /* glue because stdbool is lowercase here */
 #define TRUE true
 #define FALSE false
+union screenbuffer displaydata;
 /* */
 
 /* ====================================

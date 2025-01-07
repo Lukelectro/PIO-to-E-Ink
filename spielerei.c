@@ -9,9 +9,6 @@
 
 #include "gdisp_hld.h"
 
-    union screenbuffer displaydata; // TODO: make it local to gdisp_lld.c or ...hld.c and include all the DMA-related config there too...
-
-
 int main()
 {
     bi_decl(bi_program_description("E-ink Pio demo"));
@@ -47,16 +44,12 @@ int main()
         false // true to start imeadeately, false to start later
     );
 
-    clear_screenbuffer(WHITE); // prefil buffer with "WHITE" as background color. (just the BUFFER. Screen itself is unchanged untill write)
+    clear_screenbuffer(WHITE); // prefil buffer with "WHITE" as background color. (just the buffer. Screen itself is unchanged untill write)
 
     /* Write grayscale test block */
    for (int grayframe = 0; grayframe < 3; grayframe++)
    {
-       if (!dma_channel_is_busy(dmach))
-       {
-           // once DMA is no longer busy, load new data and restart transfer
-           dma_channel_set_read_addr(dmach, &displaydata.sb_words[0][0], true); // re-set read adress and restart transfer
-       }
+       dma_channel_set_read_addr(dmach, &displaydata.sb_words[0][0], true); // re-set read adress and restart transfer
 
        for (uint y = 500; y < 600; y++)
        {
@@ -65,12 +58,13 @@ int main()
                gdisp_lld_draw_pixel(x, y, BLACK); // expanding black block (resulting in various shades of gray)
            }
        }
-
        while (dma_channel_is_busy(dmach))
        {
-       };                 // wait untill DMA is done before changing data and starting next write
-       busy_wait_us(350); // TODO: Why is this delay needed for a proper display?
-    }
+       };                 // wait untill DMA is done before changing data and starting next write (Normaly MCU would do something else before checking if DMA is done and new data can be written.)
+      //busy_wait_us(350); // TODO: Why is this delay needed for a proper display? -> perhaps PIO statemachine is still busy with the data it got previously / that still is in its FIFO buffer.
+      while(!pio_sm_is_tx_fifo_empty(pio,sm_dmawr)); //wait untill PIO FIFO is empty / all data has been processed
+     busy_wait_us(350); // -- nah, that's not it. It still won't display unless there is a wait here.
+}
 
     clear_screenbuffer(NOCHANGE); // prefill screen buffer with "no change" data. (just the BUFFER. Screen itself is unchanged untill write)
 
@@ -92,7 +86,7 @@ int main()
     text_to_eink(10, 35, "Demo with e-ink driven by DMA to PIO",ROT_0);
     text_to_eink(10, 35, "Demo with e-ink driven by DMA to PIO",ROT_180);
     text_to_eink(10, 60, "Downside up, Upside down",ROT_180);
-    text_to_eink(10, 60, "Source code available! See blogpost at eluke.nl!",ROT_0);
+    text_to_eink(10, 60, "Source code available!",ROT_0);
     text_to_eink(250,380, "Hello World!", ROT_90); 
     text_to_eink(250,380, "Yellow Bird!", ROT_270);
     eink_set_font("fixed_10x20");
@@ -109,16 +103,10 @@ int main()
 /* Write text. Because background now is "no change" the grayscale block stays on the display. */
        for (int grayframe = 0; grayframe < 3; grayframe++) /* text is written multiple times too, so it can also be displayed in shades. */
    {
-       if (!dma_channel_is_busy(dmach))
-       {
-           // once DMA is no longer busy, load new data and restart transfer
-           dma_channel_set_read_addr(dmach, &displaydata.sb_words[0][0], true); // re-set read adress and restart transfer
-       }
-
-       while (dma_channel_is_busy(dmach))
-       {
-       };               
-       busy_wait_us(350); 
+        // once DMA is no longer busy, load new data and restart transfer
+        dma_channel_set_read_addr(dmach, &displaydata.sb_words[0][0], true); // re-set read adress and restart transfer
+        dma_channel_wait_for_finish_blocking(dmach);  // waits untill DMA is done.
+        busy_wait_us(350);                            // still for some reason this is needed before starting the next transfer... 
     }
 
     /* prepare data for white text & line */
@@ -129,25 +117,18 @@ int main()
     }
     for (int grayframe = 0; grayframe < 3; grayframe++) /* text is written multiple times too, so it can also be displayed in shades. */
     {
-       if (!dma_channel_is_busy(dmach))
-       {
-           // once DMA is no longer busy, load new data and restart transfer
-           dma_channel_set_read_addr(dmach, &displaydata.sb_words[0][0], true); // re-set read adress and restart transfer
-       }
+        dma_channel_set_read_addr(dmach, &displaydata.sb_words[0][0], true); // re-set read adress and restart transfer
 
-       while (dma_channel_is_busy(dmach))
-       {
-       };               
-       busy_wait_us(350); 
+        dma_channel_wait_for_finish_blocking(dmach);  // waits untill DMA is done.        
+        busy_wait_us(350);                            // still for some reason this is needed before starting the next transfer... 
     }
-
-    
-    busy_wait_ms(500); // then wait a bit longer just for the bit in FIFO to be writen to the display. 
-    //(TODO: in practice CPU should be doing something usefull and/or the busy/done signal should be used to know when to powerdown the eink)
 
     pio_sm_set_enabled(pio, sm_dmawr, false);// stop the PIO
     gdisp_lld_init(); // re-initialising display grabs the pins back to SIO and turns the display off. It also clears the screen buffer.
     
     /*ALTERNATIVELY could use PIO to force pins, but that wont work with a stalled PIO*/
-
+}
+void NewFunction(int dmach)
+{
+    dma_channel_wait_for_finish_blocking(dmach); // waits untill DMA is done.
 }
