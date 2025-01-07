@@ -9,6 +9,8 @@
 
 #include "gdisp_hld.h"
 
+uint pio_sm_get_tx_stalled(PIO, uint);
+
 int main()
 {
     bi_decl(bi_program_description("E-ink Pio demo"));
@@ -63,7 +65,13 @@ int main()
        };                 // wait untill DMA is done before changing data and starting next write (Normaly MCU would do something else before checking if DMA is done and new data can be written.)
       //busy_wait_us(350); // TODO: Why is this delay needed for a proper display? -> perhaps PIO statemachine is still busy with the data it got previously / that still is in its FIFO buffer.
       while(!pio_sm_is_tx_fifo_empty(pio,sm_dmawr)); //wait untill PIO FIFO is empty / all data has been processed
-     busy_wait_us(350); // -- nah, that's not it. It still won't display unless there is a wait here.
+     // busy_wait_us(350); // -- nah, that's not it. It still won't display unless there is a wait here. Also: even when the PIO TX FIFO is empty it still can be processing the last word of data it pulled.
+     // so what I should detect instead is wheter it is stalled or not.
+     //while( (pio->fdebug&PIO_FDEBUG_TXSTALL_BITS)==0); //wait untill at least one of all the state machines on this PIO is stalled (wait one of those stall bits becomes 1). 
+     // And because only one sm is in use that means wait untill that one is stalled, aka wait untill the display writer needs data again.
+     while(!pio_sm_get_tx_stalled(pio,sm_dmawr));
+     busy_wait_us(350);
+
 }
 
     clear_screenbuffer(NOCHANGE); // prefill screen buffer with "no change" data. (just the BUFFER. Screen itself is unchanged untill write)
@@ -131,4 +139,13 @@ int main()
 void NewFunction(int dmach)
 {
     dma_channel_wait_for_finish_blocking(dmach); // waits untill DMA is done.
+}
+
+
+inline uint pio_sm_get_tx_stalled(PIO pio, uint sm) {
+    check_pio_param(pio);
+    check_sm_param(sm);
+    unsigned int bitoffs = PIO_FDEBUG_TXSTALL_LSB + sm;
+    const uint32_t mask = PIO_FDEBUG_TXSTALL_BITS >> PIO_FDEBUG_TXSTALL_LSB;
+    return (pio->fdebug >> bitoffs) & mask;
 }
