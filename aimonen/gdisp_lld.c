@@ -282,7 +282,7 @@ switch(color){
     byte = 0x00; // no change, type 0b00
     break;
 }
-memset(displaydata.sb_bytes, byte, GDISP_SCREEN_HEIGHT*GDISP_SCREEN_WIDTH/(EINK_PPB)); // clear display buffer here?
+memset(displaydata.sb_bytes, byte, GDISP_SCREEN_HEIGHT*GDISP_SCREEN_WIDTH/(EINK_PPB)); // clear display buffer here
 }
 
 bool_t gdisp_lld_init(void)

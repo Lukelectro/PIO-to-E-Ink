@@ -1,6 +1,6 @@
 .program epd_refresh
 
-; // Just row write is done by PIO, rest of the display driver is just software. Later, maybe more functinality could be moved to PIO, but row write is the slowest bit
+; // Display initialisation etc. is still done by MCU, but PIO is used to write data to display, as that is the slowest bit anyway.
 ; // also, by using PIO, DMA can be used to move data to the display so the CPU has more free time for other tasks
 
 ; // notes:
@@ -10,8 +10,6 @@
 ; // set pin group for LE OE SPH SPV GMODE1 (in that order, so LE is control_basepin and OE control_basepin+1 etc. so LE is LSB, GMODE MSB.) 
 
 ; // autopull is used for data
-
-; // opt. start_scan could also be done by pio maybe? If so, include SPV and VCLK. VCLK in side, SPV in pins
 
 .side_set 2;
 
@@ -28,12 +26,12 @@ pull ifempty side 0b00; // It will wait here for data: Autopull is enabled, so t
 
 //vscan start: GMODE 1, vclk, SPV0, VCLK MAAR HOOG LATEN, SPV1, vlck
 set pins 0b11100 side 0b00;
-nop [0] side 0b01; // todo: maybe no extra wait because it takes 1 tick anyway? SO not [1] and [4] but [0] and [3]
-set x 19 [3] side 0b00;
+nop side 0b01;          // set CKV 1 us after GMODE
+set x 19 [3] side 0b00; //set x combined with sideset, would otherwise be a nop [3]
 set pins 0b10100 side 0b00
-nop [0] side 0b01;
+nop side 0b01;
 set y 9 [3] side 0b00;
-nop side 0b01; // CKV should go high a bit early here...
+nop side 0b01; // CKV should go high a bit early here... For EDSC60SC7, perhaps others will (not || also) need this.
 set pins 0b11100 [1] side 0b01
 nop [3] side 0b00;
 
@@ -53,7 +51,7 @@ jmp y-- rowloop side 0b00;
 set pins 0b11100 side 0b00;
 set x 25 side 0b10; // would be a nop side 0b10 for just the clock, but also sets X for next delay loop
 nop side 0b00; // TODO: test if this is needed?
-set pins 0b11101 [1] side 0b00; // TODO: Test if a clock delay is needed or if that [1] can be removed?
+set pins 0b11101 [0] side 0b00; // TODO: Test if a clock delay is needed or if that [1] can be removed? (Latch enable high for 2 us with the [1], or for 1 us without it.) -- Indeed, not needed, 1 us is fine
 set pins 0b11100 side 0b00;
 
 //vscan_write
@@ -72,21 +70,21 @@ JMP !OSRE colloop side 0b00; // for 600 rows: (30 times 20), or rather simpy unt
 
 % c-sdk {
     #include "hardware/clocks.h"
-static inline void epd_refresh_program_init(PIO pio, uint sm, uint offset, uint datapin_base, uint clocks_base , uint control_base) {
+    static inline void epd_refresh_program_init(PIO pio, uint sm, uint offset, uint datapin_base, uint clocks_base , uint control_base) {
     // control_base: LE (Next OE, SPH, SPV)
     // data_base: first data pin
     // clocks_base: CL (next ckv)
     pio_sm_config c = epd_refresh_program_get_default_config(offset);
 
-//set pins for use with SET
+    // set pins for use with SET
     sm_config_set_set_pins(&c,control_base,5); 
-     // Set this pin's GPIO function (connect PIO to the pad)
+    // Set this pin's GPIO function (connect PIO to the pad)
     for(int i=0;i<5;i++){
         pio_gpio_init(pio, control_base+i);
     }
     // Set the pin direction to output at the PIO
     pio_sm_set_consecutive_pindirs(pio, sm, control_base, 5, true);
-//  set pins for use with OUT
+    //  set pins for use with OUT
     sm_config_set_out_pins(&c, datapin_base, 8);
     // Set this pin's GPIO function (connect PIO to the pad)
         for(uint i=0;i<8;i++){
@@ -94,33 +92,29 @@ static inline void epd_refresh_program_init(PIO pio, uint sm, uint offset, uint 
         }
     // Set the pin direction to output at the PIO
     pio_sm_set_consecutive_pindirs(pio, sm, datapin_base, 8, true);
-// set pins for use with SIDE_SET
+    // set pins for use with SIDE_SET
     sm_config_set_sideset_pins (&c,clocks_base); //side-set gpio gp2 -- NOTE: sm_config_set_sideset_pins is not pio_sm_set_sideset_pins! 
     pio_gpio_init(pio,clocks_base); 
     pio_gpio_init(pio,clocks_base+1); 
     pio_sm_set_consecutive_pindirs(pio, sm, clocks_base, 2, true);//set output for the side-set pin
-
+    // set clock speed:
     float div = clock_get_hz(clk_sys) / 1000000; // 1 cycle should be 1 us, so run at 1 MHz
-    //float div = clock_get_hz(clk_sys) / 50000; // try 50 kHz instead too see if 1 MHz is too fast?
-    //float div = clock_get_hz(clk_sys) / 100000;
-
     sm_config_set_clkdiv(&c,div);
-
     //join both 4-level fifo's into one output fifo (8 levels)
     sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_TX);
-
-    sm_config_set_out_shift(&c, true,true,32); // autopull when 32 bits have been shifted out, right
-
+    // autopull when 32 bits have been shifted out, right
+    sm_config_set_out_shift(&c, true,true,32);
     // Load our configuration, and jump to the start of the program
     pio_sm_init(pio, sm, offset, &c);
     // Set the state machine running
     pio_sm_set_enabled(pio, sm, true);
 }
 
-
+//TODO: test and (if needed) fix
 int DMA_setup_eink_rowwrite(void * dispdata, const uint SIZE, PIO pio, uint sm, int* pdmach)
 {
     // dispdata: pointer to display data buffer (the data to write to the rows)
+    // SIZE: Size of dispdata buffer == Amount of data to transfer
     // PIO and SM: the pio and statemachine to write this data to TODO: could be pointers?
 
     // *pdmach:  returns a pointer to the dma channel claimed for this
@@ -148,12 +142,12 @@ int DMA_setup_eink_rowwrite(void * dispdata, const uint SIZE, PIO pio, uint sm, 
 return 1; 
 }
 
-
+//TODO: test and fix
 int start_a_dma_eink_rowwrite(uint* dmach, void* dispdata, PIO pio)
 {
-    //*dmach: pointer to the dma ch to start, 
+    // *dmach: pointer to the dma ch to start, 
     // dispdata: pointer to display data buffer (the data to write to the rows)
-    // // PIO: the pio to write this data to TODO could be pointer?
+    // PIO: the pio to write this data to TODO could be pointer?
     // returns 1 on succes, 0 when still bussy from previous write, -1 on failure
 
      if(!dma_channel_is_busy(*dmach))// TODO: this triggers a HARDFAULT! (Interrupt fout?)
