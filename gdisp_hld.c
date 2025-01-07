@@ -16,34 +16,35 @@ void clear_buffer()
 static void pixel_callback(int16_t x, int16_t y, uint8_t count, uint8_t alpha, void *state)
     {
      // alpha gets ignored.
-     unsigned int rot = *(int*)state;
+     unsigned int rot =0xFF00 & *(int*) state;
+     color_t colour = 0x00FF & (*(int*)state);
         switch(rot){
             default:
             case ROT_0:
                 while (count--)
                 {
-                    gdisp_lld_draw_pixel(x,y,BLACK);
+                    gdisp_lld_draw_pixel(x,y,colour);
                     x++;
                 }
             break;
             case ROT_90:
                 while (count--)
                 {
-                    gdisp_lld_draw_pixel(y, GDISP_SCREEN_HEIGHT-x ,BLACK);
+                    gdisp_lld_draw_pixel(y, GDISP_SCREEN_HEIGHT-x ,colour);
                     x++;
                 }
             break;
             case ROT_180:
                 while (count--)
                 {
-                    gdisp_lld_draw_pixel(GDISP_SCREEN_WIDTH-x, GDISP_SCREEN_HEIGHT-y ,BLACK);
+                    gdisp_lld_draw_pixel(GDISP_SCREEN_WIDTH-x, GDISP_SCREEN_HEIGHT-y ,colour);
                     x++;
                 }
             break;
             case ROT_270:
                while (count--)
                 {
-                    gdisp_lld_draw_pixel(GDISP_SCREEN_WIDTH-y, x ,BLACK);
+                    gdisp_lld_draw_pixel(GDISP_SCREEN_WIDTH-y, x ,colour);
                     x++;
                 }
             break;

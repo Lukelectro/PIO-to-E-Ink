@@ -47,6 +47,8 @@ int main()
         false // true to start imeadeately, false to start later
     );
 
+    clear_screenbuffer(WHITE); // prefil buffer with "WHITE" as background color. (just the BUFFER. Screen itself is unchanged untill write)
+
     /* Write grayscale test block */
    for (int grayframe = 0; grayframe < 3; grayframe++)
    {
@@ -60,7 +62,7 @@ int main()
        {
            for (uint x = 10; x < 110 + grayframe * 100; x++)
            {
-               gdisp_lld_draw_pixel(x, y, 0); // expanding black block (resulting in various shades of gray)
+               gdisp_lld_draw_pixel(x, y, BLACK); // expanding black block (resulting in various shades of gray)
            }
        }
 
@@ -70,9 +72,19 @@ int main()
        busy_wait_us(350); // TODO: Why is this delay needed for a proper display?
     }
 
+    clear_screenbuffer(NOCHANGE); // prefill screen buffer with "no change" data. (just the BUFFER. Screen itself is unchanged untill write)
+
+    /*prepare black background in top right corner */
+    for (uint y = 0; y < 100; y++)
+    {
+        for (uint x = 600; x < 800; x++)
+        {
+            gdisp_lld_draw_pixel(x, y, BLACK);
+        }
+    }
+
 
     /* prepare text data to write to display */
-    clear_screenbuffer(NOCHANGE00); // prefill screen buffer with "no change" data.
     eink_set_font("DejaVuSerif32");
     text_to_eink(10, 0, "E-ink.Eluke.nl",ROT_0);
     text_to_eink(10, 0, "E-ink.Eluke.nl",ROT_180);
@@ -80,19 +92,43 @@ int main()
     text_to_eink(10, 35, "Demo with e-ink driven by DMA to PIO",ROT_0);
     text_to_eink(10, 35, "Demo with e-ink driven by DMA to PIO",ROT_180);
     text_to_eink(10, 60, "Downside up, Upside down",ROT_180);
+    text_to_eink(10, 60, "Source code available! See blogpost at eluke.nl!",ROT_0);
     text_to_eink(250,380, "Hello World!", ROT_90); 
     text_to_eink(250,380, "Yellow Bird!", ROT_270);
     eink_set_font("fixed_10x20");
     text_to_eink(10, 480, "Grayscale withouth dithering.",ROT_0);
+    //text_to_eink(610,60, "White text", ROT_0|WHITE); -- When written at the same time as the background colour, text bleeds.
 
 
     for(uint i = 250; i<350; i++) {
-    gdisp_lld_draw_pixel(400, i, BLACK);  // 1px lijntje
+    gdisp_lld_draw_pixel(400,i, BLACK);  // 1px line between Hellow World and Yellow Bird
     }
+
+
 
 /* Write text. Because background now is "no change" the grayscale block stays on the display. */
        for (int grayframe = 0; grayframe < 3; grayframe++) /* text is written multiple times too, so it can also be displayed in shades. */
    {
+       if (!dma_channel_is_busy(dmach))
+       {
+           // once DMA is no longer busy, load new data and restart transfer
+           dma_channel_set_read_addr(dmach, &displaydata.sb_words[0][0], true); // re-set read adress and restart transfer
+       }
+
+       while (dma_channel_is_busy(dmach))
+       {
+       };               
+       busy_wait_us(350); 
+    }
+
+    /* prepare data for white text & line */
+    clear_screenbuffer(NOCHANGE); 
+    text_to_eink(610,30, "White text & line", ROT_0|WHITE);
+    for(uint i = 610; i<790; i++) {
+    gdisp_lld_draw_pixel(i, 55, WHITE);  // 1px white line on black bg
+    }
+    for (int grayframe = 0; grayframe < 3; grayframe++) /* text is written multiple times too, so it can also be displayed in shades. */
+    {
        if (!dma_channel_is_busy(dmach))
        {
            // once DMA is no longer busy, load new data and restart transfer
