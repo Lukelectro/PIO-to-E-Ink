@@ -63,14 +63,7 @@ int main()
        while (dma_channel_is_busy(dmach))
        {
        };                 // wait untill DMA is done before changing data and starting next write (Normaly MCU would do something else before checking if DMA is done and new data can be written.)
-      //busy_wait_us(350); // TODO: Why is this delay needed for a proper display? -> perhaps PIO statemachine is still busy with the data it got previously / that still is in its FIFO buffer.
-      while(!pio_sm_is_tx_fifo_empty(pio,sm_dmawr)); //wait untill PIO FIFO is empty / all data has been processed
-     // busy_wait_us(350); // -- nah, that's not it. It still won't display unless there is a wait here. Also: even when the PIO TX FIFO is empty it still can be processing the last word of data it pulled.
-     // so what I should detect instead is wheter it is stalled or not.
-     //while( (pio->fdebug&PIO_FDEBUG_TXSTALL_BITS)==0); //wait untill at least one of all the state machines on this PIO is stalled (wait one of those stall bits becomes 1). 
-     // And because only one sm is in use that means wait untill that one is stalled, aka wait untill the display writer needs data again.
-     while(!pio_sm_get_tx_stalled(pio,sm_dmawr));
-     busy_wait_us(350);
+     busy_wait_us(350);   // delay needed to get all data out from PIO to display and perhaps for the display itself.
 
 }
 
@@ -98,7 +91,7 @@ int main()
     text_to_eink(250,380, "Hello World!", ROT_90); 
     text_to_eink(250,380, "Yellow Bird!", ROT_270);
     eink_set_font("fixed_10x20");
-    text_to_eink(10, 480, "Grayscale withouth dithering.",ROT_0);
+    text_to_eink(10, 480, "Grayscale without dithering.",ROT_0);
     //text_to_eink(610,60, "White text", ROT_0|WHITE); -- When written at the same time as the background colour, text bleeds.
 
 
@@ -114,7 +107,7 @@ int main()
         // once DMA is no longer busy, load new data and restart transfer
         dma_channel_set_read_addr(dmach, &displaydata.sb_words[0][0], true); // re-set read adress and restart transfer
         dma_channel_wait_for_finish_blocking(dmach);  // waits untill DMA is done.
-        busy_wait_us(350);                            // still for some reason this is needed before starting the next transfer... 
+        busy_wait_us(350);                            
     }
 
     /* prepare data for white text & line */
@@ -128,24 +121,11 @@ int main()
         dma_channel_set_read_addr(dmach, &displaydata.sb_words[0][0], true); // re-set read adress and restart transfer
 
         dma_channel_wait_for_finish_blocking(dmach);  // waits untill DMA is done.        
-        busy_wait_us(350);                            // still for some reason this is needed before starting the next transfer... 
+        busy_wait_us(350);                             
     }
 
     pio_sm_set_enabled(pio, sm_dmawr, false);// stop the PIO
     gdisp_lld_init(); // re-initialising display grabs the pins back to SIO and turns the display off. It also clears the screen buffer.
     
     /*ALTERNATIVELY could use PIO to force pins, but that wont work with a stalled PIO*/
-}
-void NewFunction(int dmach)
-{
-    dma_channel_wait_for_finish_blocking(dmach); // waits untill DMA is done.
-}
-
-
-inline uint pio_sm_get_tx_stalled(PIO pio, uint sm) {
-    check_pio_param(pio);
-    check_sm_param(sm);
-    unsigned int bitoffs = PIO_FDEBUG_TXSTALL_LSB + sm;
-    const uint32_t mask = PIO_FDEBUG_TXSTALL_BITS >> PIO_FDEBUG_TXSTALL_LSB;
-    return (pio->fdebug >> bitoffs) & mask;
 }

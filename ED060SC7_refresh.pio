@@ -24,7 +24,7 @@ jmp x-- vclkloop side 0b00;
 
 pull ifempty side 0b00; // It will wait here for data: Autopull is enabled, so this is a nop UNLESS it has to wait for data, then it will stall. 
 
-//vscan start: GMODE 1, vclk, SPV0, VCLK MAAR HOOG LATEN, SPV1, vlck
+//vscan start: GMODE 1, vclk, SPV0, VCLK (but leave it 1), SPV 1, VCLK
 set pins 0b11100 side 0b00;
 nop side 0b01;          // set CKV 1 us after GMODE
 set x 19 [3] side 0b00; //set x combined with sideset, would otherwise be a nop [3]
