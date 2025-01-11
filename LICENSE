@@ -21,4 +21,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 Also contains (based on ;)) public domain software from https://github.com/PetteriAimonen/ED060SC4_driver
-(I only added the PIO bit)
+(I only added the PIO bit).
+
+Also contains mcufont Copyright (C) 2013 Petteri Aimonen:
+https://github.com/mcufont/mcufont/blob/master/LICENSE
